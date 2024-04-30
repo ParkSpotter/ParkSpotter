@@ -21,7 +21,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const handleLogin = () => {
-    Alert.alert("You're logged in!")
+    // Alert.alert("You're logged in!")
     navigation.navigate('Home')
   }
   return (
