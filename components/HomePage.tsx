@@ -1,16 +1,10 @@
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Button,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from 'react-native'
+import { FC } from 'react'
+import { Text, View, Button } from 'react-native'
 
-const HomePage = ({ navigation }: { navigation: any }) => {
+const HomePage: FC<{ route: any; navigation: any }> = ({
+  route,
+  navigation,
+}) => {
   return (
     <View>
       <Text>Home</Text>
