@@ -41,7 +41,10 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
     }
   }
   const handleLogin = () => {
-    // Alert.alert("You're logged in!")
+    if (!username || !password) {
+      Alert.alert('Please fill in the fields!')
+      return
+    }
     navigation.navigate('Home')
   }
   return (
@@ -199,6 +202,7 @@ const styles = StyleSheet.create({
   signup: {
     color: 'darkblue',
     fontSize: 13,
+    alignSelf: 'center',
   },
 })
 export default HomePage
