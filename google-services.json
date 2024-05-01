@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76031072817",
+    "project_id": "parkspotter-d55c3",
+    "storage_bucket": "parkspotter-d55c3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76031072817:android:db2038ee5613857a921310",
+        "android_client_info": {
+          "package_name": "com.parkspotter.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUXQbyNTfcSOFB9BqZftbP4lQ25-xhjpw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

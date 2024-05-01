@@ -1,4 +1,6 @@
 import React, { FC, useState } from 'react'
+import auth from '@react-native-firebase/auth'
+import db from '@react-native-firebase/database'
 import {
   Alert,
   Button,
@@ -11,8 +13,8 @@ import {
   TextInput,
   View,
 } from 'react-native'
-const logo = require('../../ParkSpotter/assets/ParkSpotterLogo.png')
 
+const logo = require('../../ParkSpotter/assets/ParkSpotterLogo.png')
 const HomePage: FC<{ route: any; navigation: any }> = ({
   route,
   navigation,
@@ -20,6 +22,24 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
   const [click, setClick] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+
+  const registerWithFireBase = async () => {
+    if (username && password) {
+      try {
+        const response = await auth().createUserWithEmailAndPassword(
+          username,
+          password
+        )
+        Alert.alert('Account created!')
+        db().ref(`users/${response.user.uid}`).set({ name: username })
+        navigation.navigate('Home')
+      } catch (e: any) {
+        console.log(e.message)
+      }
+    } else {
+      Alert.alert('Please fill in the fields!')
+    }
+  }
   const handleLogin = () => {
     // Alert.alert("You're logged in!")
     navigation.navigate('Home')
@@ -67,9 +87,12 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
         <Image source={linkedin} style={styles.icons} />
       </View> */}
 
-      <Text style={styles.footerText}>
-        Don't Have Account?<Text style={styles.signup}> Sign Up</Text>
-      </Text>
+      <Text style={styles.footerText}>Don't Have Account?</Text>
+      <View style={styles.buttonView}>
+        <Pressable onPress={registerWithFireBase}>
+          <Text style={styles.signup}>Sign Up</Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   )
 }
