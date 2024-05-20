@@ -13,7 +13,7 @@ const NavBar: FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
 
   return (
     <Appbar.Header>
-      <Appbar.BackAction onPress={() => navigation.goBack()} />
+      {/* <Appbar.BackAction onPress={() => navigation.goBack()} /> */}
       <Appbar.Content title={title} />
       <Menu
         visible={visible}

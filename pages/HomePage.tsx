@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native'
 import {
   Button,
   Appbar,
@@ -34,9 +34,21 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
           </Card.Content>
         </Card>
         <Button
+          onPress={() => {
+            Alert.alert('Logout', 'Are you sure you want to logout?', [
+              {
+                text: 'No',
+                onPress: () => console.log('Cancel Pressed'),
+                style: 'cancel',
+              },
+              {
+                text: 'Yes',
+                onPress: () => navigation.navigate('Login'),
+              },
+            ])
+          }}
           icon="logout"
           mode="contained"
-          onPress={() => navigation.navigate('Login')}
           style={styles.button}
         >
           Logout

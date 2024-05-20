@@ -46,10 +46,10 @@ const Register: FC<{ route: any; navigation: any }> = ({
         }
         theme={{
           colors: {
-            placeholder: '#555',
-            text: 'black',
+            // placeholder: '#555',
+            // text: 'black',
             primary: '#6200ea',
-            underlineColor: 'transparent',
+            // underlineColor: 'transparent',
             background: '#fff',
           },
         }}
@@ -67,10 +67,10 @@ const Register: FC<{ route: any; navigation: any }> = ({
         }
         theme={{
           colors: {
-            placeholder: '#555',
-            text: 'black',
+            // placeholder: '#555',
+            // text: 'black',
             primary: '#6200ea',
-            underlineColor: 'transparent',
+            // underlineColor: 'transparent',
             background: '#fff',
           },
         }}
