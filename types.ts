@@ -1,10 +1,11 @@
 import { User } from "firebase/auth";
-type location = {
+import { Image } from "react-native-elements/dist/image/Image";
+type Location = {
     lat: number,
     lng: number
 }
 
-type Car =
+export type Car =
     {
         id: string
         model: string
@@ -12,14 +13,15 @@ type Car =
         lastCheckup: Date
         lastWash: Date
         fuelLevel: Number
-        location: location
+        location: Location
     }
 
-type Group = {
+export type Group = {
     cars: Car[]
     users: UserScheme[]
 }
 
-type UserScheme = User & {
+export type UserScheme = User & {
     groups: Group[]
+    photo? :Image
 }
