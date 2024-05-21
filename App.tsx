@@ -1,23 +1,15 @@
 import React, { useState } from 'react'
 import { Provider as PaperProvider } from 'react-native-paper'
 import AppNav from './navigation/AppNav'
-import { createContext } from 'react'
-
-export const Context = createContext({})
+import { ContextProvider } from './context/context'
 
 const App = () => {
-  const [user, setUser] = useState({})
   return (
-    <Context.Provider
-      value={{
-        user,
-        setUser,
-      }}
-    >
+    <ContextProvider>
       <PaperProvider>
         <AppNav />
       </PaperProvider>
-    </Context.Provider>
+    </ContextProvider>
   )
 }
 

@@ -10,14 +10,13 @@ import {
 } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import NavBar from '../components/NavBar'
-import { Context } from '../App'
-
+import { Context } from '../context/context'
+import { auth } from '../firebaseConfig'
 const HomePage: FC<{ route: any; navigation: any }> = ({
   route,
   navigation,
 }) => {
-  const { user } = useContext(Context)
-  alert(user.email)
+  alert(JSON.stringify(auth?.currentUser))
   return (
     <SafeAreaView style={styles.container}>
       {/* <Appbar.Header>

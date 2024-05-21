@@ -10,18 +10,15 @@ import {
 } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
+import { User, getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebaseConfig'
-import { Context } from '../App'
+import { Context } from '../context/context'
 
 const logo = require('../assets/ParkSpotterLogo.png')
 
-const LoginPage: FC<{ route: any; navigation: any }> = ({
-  route,
-  navigation,
-}) => {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+const LoginPage: FC<{ route: any; navigation: any }> = ({ navigation }) => {
+  const [username, setUsername] = useState('test@gmail.com')
+  const [password, setPassword] = useState('123456')
   const { user, setUser } = useContext(Context)
   const handleLogin = async () => {
     try {
@@ -30,8 +27,8 @@ const LoginPage: FC<{ route: any; navigation: any }> = ({
         username,
         password
       )
-      const user = userCredential.user
-      setUser(user)
+
+      const user: User = userCredential.user
       Alert.alert('Login Successful', `Welcome back, ${user.email}!`)
       navigation.navigate('Home')
       setPassword('')
