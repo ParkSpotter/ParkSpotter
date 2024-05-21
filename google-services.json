@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "155180757937",
-    "project_id": "parkspotter-368c8",
-    "storage_bucket": "parkspotter-368c8.appspot.com"
+    "project_number": "673932586387",
+    "project_id": "parkspotter-21dc6",
+    "storage_bucket": "parkspotter-21dc6.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:155180757937:android:2395337634a20a5e0e0390",
+        "mobilesdk_app_id": "1:673932586387:android:5c37ef72d243a624880c66",
         "android_client_info": {
-          "package_name": "com.ParkSpotter"
+          "package_name": "com.parkspotter"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCCoHPLPMcRgvUllkqaDCoP9tc2UEbApS4"
+          "current_key": "AIzaSyB1CAIAVYD-7hBHUYyz55JXLUKtfgxn7Ng"
         }
       ],
       "services": {
