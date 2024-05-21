@@ -3,7 +3,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebaseConfig'
+import { auth, firestore } from '../firebaseConfig'
 
 const Register: FC<{ route: any; navigation: any }> = ({
   route,
@@ -19,6 +19,7 @@ const Register: FC<{ route: any; navigation: any }> = ({
         email,
         password
       )
+
       const user = userCredential.user
       Alert.alert('Registration Successful', 'You can now login', [
         {
