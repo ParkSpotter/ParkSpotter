@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useContext, useState } from 'react'
 import {
   Alert,
   StyleSheet,
@@ -12,6 +12,7 @@ import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebaseConfig'
+import { Context } from '../App'
 
 const logo = require('../assets/ParkSpotterLogo.png')
 
@@ -21,7 +22,7 @@ const LoginPage: FC<{ route: any; navigation: any }> = ({
 }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-
+  const { user, setUser } = useContext(Context)
   const handleLogin = async () => {
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -30,6 +31,7 @@ const LoginPage: FC<{ route: any; navigation: any }> = ({
         password
       )
       const user = userCredential.user
+      setUser(user)
       Alert.alert('Login Successful', `Welcome back, ${user.email}!`)
       navigation.navigate('Home')
       setPassword('')
@@ -96,7 +98,7 @@ const LoginPage: FC<{ route: any; navigation: any }> = ({
       </View>
       <Text style={styles.footerText}>Don't Have an Account?</Text>
       <View style={styles.buttonView}>
-        <Pressable onPress={() => navigation.navigate('RegisterPage')}>
+        <Pressable onPress={() => navigation.navigate('Register')}>
           <Text style={styles.signup}>Sign Up</Text>
         </Pressable>
       </View>

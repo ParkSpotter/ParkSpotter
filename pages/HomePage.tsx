@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React, { FC, useContext } from 'react'
 import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native'
 import {
   Button,
@@ -10,11 +10,14 @@ import {
 } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import NavBar from '../components/NavBar'
+import { Context } from '../App'
 
 const HomePage: FC<{ route: any; navigation: any }> = ({
   route,
   navigation,
 }) => {
+  const { user } = useContext(Context)
+  alert(user.email)
   return (
     <SafeAreaView style={styles.container}>
       {/* <Appbar.Header>

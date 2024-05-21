@@ -1,12 +1,23 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Provider as PaperProvider } from 'react-native-paper'
-import AppNav from './navigation/AppNav' // Assuming AppNav is your main navigation component
+import AppNav from './navigation/AppNav'
+import { createContext } from 'react'
+
+export const Context = createContext({})
 
 const App = () => {
+  const [user, setUser] = useState({})
   return (
-    <PaperProvider>
-      <AppNav />
-    </PaperProvider>
+    <Context.Provider
+      value={{
+        user,
+        setUser,
+      }}
+    >
+      <PaperProvider>
+        <AppNav />
+      </PaperProvider>
+    </Context.Provider>
   )
 }
 
