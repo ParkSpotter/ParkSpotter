@@ -3,9 +3,11 @@ import { Alert, StyleSheet, Text, View } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
+
 import { auth, firestore } from '../firebaseConfig'
 import { addDoc, collection, doc, setDoc } from "firebase/firestore"
 import { Car, UserScheme, Group } from '../types'
+
 
 
 const Register: FC<{ route: any; navigation: any }> = ({
@@ -40,6 +42,14 @@ const Register: FC<{ route: any; navigation: any }> = ({
 
 
       const user = userCredential.user
+
+      const docRef = await addDoc(collection(db, 'users'), {
+        uid: user.uid,
+        email: user.email,
+        temp: [1, 2, 3],
+      })
+      console.log('Document written with ID: ', docRef.id)
+
       Alert.alert('Registration Successful', 'You can now login', [
         {
           text: 'OK',

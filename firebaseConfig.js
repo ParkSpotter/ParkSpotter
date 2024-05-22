@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 // import { Database, getDatatbase, ref } from 'firebase/database'
 const firebaseConfig = {
+
   apiKey: "AIzaSyAmpH7G_RlXUfIY_HeKWUVlYHc77tapCdg",
   authDomain: "parkspotter-21dc6.firebaseapp.com",
   projectId: "parkspotter-21dc6",
@@ -12,20 +13,10 @@ const firebaseConfig = {
   measurementId: "G-ZMP007WH4Q"
 };
 
+
 const app = initializeApp(firebaseConfig)
 
 const auth = getAuth(app)
-const firestore = getFirestore(app)
+const db = getFirestore(app)
 
-// function createUser(email, passowrd) {
-
-//   const reference = ref(db, 'users/' + email)
-//   const db = getDatatbase
-
-//   set(reference, {
-//     email: email,
-//     password: passowrd
-//   })
-// }
-// createUser("new@gmail.com","123456")
-export { auth, firestore }
+export { auth, db }
