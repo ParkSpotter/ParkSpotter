@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { Alert, StyleSheet, View } from 'react-native'
 import { Appbar, Menu, Divider } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 
@@ -25,10 +25,21 @@ const NavBar: FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
           />
         }
       >
-        <Menu.Item onPress={() => {}} title="Option 1" />
-        <Menu.Item onPress={() => {}} title="Option 2" />
+        <Menu.Item onPress={() => navigation.navigate("Home")} title="Home" />
+        <Menu.Item onPress={() => {
+          Alert.alert('Logout', 'Are you sure you want to logout?', [
+            {
+              text: 'No',
+              onPress: () => console.log('Cancel Pressed'),
+              style: 'cancel',
+            },
+            {
+              text: 'Yes',
+              onPress: () => navigation.navigate('Login'),
+            },
+          ])
+        }} title="LogOut" />
         <Divider />
-        <Menu.Item onPress={() => {}} title="Option 3" />
       </Menu>
     </Appbar.Header>
   )

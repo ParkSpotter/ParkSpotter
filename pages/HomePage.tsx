@@ -1,22 +1,13 @@
-import React, { FC, useContext } from 'react'
-import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native'
-import {
-  Button,
-  Appbar,
-  Avatar,
-  Card,
-  Title,
-  Paragraph,
-} from 'react-native-paper'
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import NavBar from '../components/NavBar'
-import { Context } from '../context/context'
-import { auth } from '../firebaseConfig'
-const HomePage: FC<{ route: any; navigation: any }> = ({
-  route,
-  navigation,
-}) => {
-  alert(JSON.stringify(auth?.currentUser))
+import React, { FC, useContext } from 'react';
+import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native';
+import { Button, Appbar, Avatar, Card, Title, Paragraph } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import NavBar from '../components/NavBar';
+import { Context } from '../context/context';
+import { auth } from '../firebaseConfig';
+
+const HomePage: FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
+  const userName=JSON.stringify(auth?.currentUser?.email)
   return (
     <SafeAreaView style={styles.container}>
       {/* <Appbar.Header>
@@ -35,6 +26,25 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
             <Paragraph>Enjoy exploring our features.</Paragraph>
           </Card.Content>
         </Card>
+        
+        <Button
+          onPress={() => navigation.navigate('Cars')}
+          icon="car"
+          mode="contained"
+          style={styles.sectionButton}
+        >
+          My Cars
+        </Button>
+        
+        <Button
+          onPress={() => navigation.navigate('Groups')}
+          icon="account-group"
+          mode="contained"
+          style={styles.sectionButton}
+        >
+          My Groups
+        </Button>
+
         <Button
           onPress={() => {
             Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -75,10 +85,15 @@ const styles = StyleSheet.create({
     width: '90%',
     marginBottom: 20,
   },
+  sectionButton: {
+    marginTop: 20,
+    width: '90%',
+    backgroundColor: '#6200ea',
+  },
   button: {
     marginTop: 20,
     backgroundColor: '#6200ea',
   },
-})
+});
 
-export default HomePage
+export default HomePage;

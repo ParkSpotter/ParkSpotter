@@ -26,9 +26,10 @@ const Register: FC<{ route: any; navigation: any }> = ({
         password
       )
       await addDoc(collection(firestore, "users"), {
-        name: email,
+        email: email,
         password: password,
-        groups: JSON.stringify(["aaaa"])
+        groups: [],
+        cars: []
       })
 
 

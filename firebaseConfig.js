@@ -3,15 +3,14 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 // import { Database, getDatatbase, ref } from 'firebase/database'
 const firebaseConfig = {
-  apiKey: 'AIzaSyC0CI3ZgiQ8vMmLnuZvKf9QAA_v5qQPe5o',
-  authDomain: 'parkspotter-368c8.firebaseapp.com',
-  // databaseURL: 'https://parkspotter-368c8-default-rtdb.firebaseio.com',
-  projectId: 'parkspotter-368c8',
-  storageBucket: 'parkspotter-368c8.appspot.com',
-  messagingSenderId: '155180757937',
-  appId: '1:155180757937:web:bc269d2ca4092aca0e0390',
-  measurementId: 'G-9N5H020JX7',
-}
+  apiKey: "AIzaSyAmpH7G_RlXUfIY_HeKWUVlYHc77tapCdg",
+  authDomain: "parkspotter-21dc6.firebaseapp.com",
+  projectId: "parkspotter-21dc6",
+  storageBucket: "parkspotter-21dc6.appspot.com",
+  messagingSenderId: "673932586387",
+  appId: "1:673932586387:web:9b48b46a800b43de880c66",
+  measurementId: "G-ZMP007WH4Q"
+};
 
 const app = initializeApp(firebaseConfig)
 
