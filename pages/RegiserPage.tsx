@@ -4,7 +4,7 @@ import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
 
-import { auth, firestore } from '../firebaseConfig'
+import { auth, db } from '../firebaseConfig'
 import { addDoc, collection, doc, setDoc } from "firebase/firestore"
 import { Car, UserScheme, Group } from '../types'
 
@@ -19,7 +19,7 @@ const Register: FC<{ route: any; navigation: any }> = ({
 
   const handleRegister = async () => {
     try {
-      const USerRef = collection(firestore, "users")
+      const USerRef = collection(db, "users")
 
 
       const userCredential = await createUserWithEmailAndPassword(
@@ -27,7 +27,7 @@ const Register: FC<{ route: any; navigation: any }> = ({
         email,
         password
       )
-      await addDoc(collection(firestore, "users"), {
+      await addDoc(collection(db, "users"), {
         email: email,
         password: password,
         groups: [],

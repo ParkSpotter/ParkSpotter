@@ -23,5 +23,5 @@ export type Group = {
 
 export type UserScheme = User & {
     groups: Group[]
-    photo? :Image
+    photo?: Image
 }
