@@ -3,8 +3,9 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import LoginPage from '../pages/LoginPage'
 import HomePage from '../pages/HomePage'
-import RegisterPage from '../pages/RegiserPage' // Corrected the typo in the file path
-
+import CarsPage from '../pages/CarsPage'
+import RegisterPage from '../pages/RegiserPage' 
+import GroupsPage from '../pages/GroupsPage'
 const Stack = createNativeStackNavigator()
 
 const AppNav = () => {
@@ -26,7 +27,22 @@ const AppNav = () => {
           component={RegisterPage}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name='Cars'
+          component={CarsPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name='Groups'
+          component={GroupsPage}
+          options={{ headerShown: false }}
+        />
+
+
       </Stack.Navigator>
+
+
+
     </NavigationContainer>
   )
 }

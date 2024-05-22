@@ -1,10 +1,14 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useRef, useState } from 'react'
 import { Alert, StyleSheet, Text, View } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth, db } from '../firebaseConfig'
-import { addDoc, collection } from 'firebase/firestore'
+
+import { auth, firestore } from '../firebaseConfig'
+import { addDoc, collection, doc, setDoc } from "firebase/firestore"
+import { Car, UserScheme, Group } from '../types'
+
+
 
 const Register: FC<{ route: any; navigation: any }> = ({
   route,
@@ -15,11 +19,27 @@ const Register: FC<{ route: any; navigation: any }> = ({
 
   const handleRegister = async () => {
     try {
+      const USerRef = collection(firestore, "users")
+
+
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       )
+      await addDoc(collection(firestore, "users"), {
+        email: email,
+        password: password,
+        groups: [],
+        cars: []
+      })
+
+
+
+
+      console.log("Document written with ID:");
+
+
 
       const user = userCredential.user
 
