@@ -8,4 +8,6 @@ export type RegisterViewModel = {
   onSubmit: () => void
   isLoading: boolean
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+  image: string | null
+  setImage: React.Dispatch<React.SetStateAction<string | null>>
 }
