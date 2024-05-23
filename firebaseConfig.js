@@ -1,7 +1,9 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
-import storage from '@react-native-firebase/storage'
+
+import { getStorage } from 'firebase/storage'
+
 const firebaseConfig = {
   apiKey: 'AIzaSyAmpH7G_RlXUfIY_HeKWUVlYHc77tapCdg',
   authDomain: 'parkspotter-21dc6.firebaseapp.com',
@@ -14,6 +16,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
+const storage = getStorage(app)
 const db = getFirestore(app)
 
 export { auth, db, storage }

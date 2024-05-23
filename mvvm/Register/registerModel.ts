@@ -10,4 +10,8 @@ export type RegisterViewModel = {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
   image: string | null
   setImage: React.Dispatch<React.SetStateAction<string | null>>
+  pickImage: () => void
+  takeSelfie: () => void
+  isPhotoLoading: boolean
+  setIsPhotoLoading: React.Dispatch<React.SetStateAction<boolean>>
 }
