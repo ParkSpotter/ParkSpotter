@@ -1,11 +1,12 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { Text, View, Image } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-
 import useRegisterViewModel from './registerViewModel'
 import { styles } from './registerStyles'
 import MySpinner from '../components/Spinner'
+
+const defaultPhotoUri = 'https://www.w3schools.com/howto/img_avatar.png'
 
 const RegisterView: React.FC<{ navigation: any }> = ({ navigation }) => {
   const {
@@ -17,14 +18,39 @@ const RegisterView: React.FC<{ navigation: any }> = ({ navigation }) => {
     username,
     setUserName,
     isLoading,
+    image,
+    pickImage,
+    takeSelfie,
+    isPhotoLoading,
   } = useRegisterViewModel((route: string) => navigation.navigate(route))
 
   if (isLoading) {
     return <MySpinner />
   }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+      <>
+        <Text style={styles.title}>Register</Text>
+        {isPhotoLoading ? (
+          <MySpinner />
+        ) : (
+          <Image
+            source={{ uri: image || defaultPhotoUri }}
+            style={styles.profileImage}
+          />
+        )}
+        <Button mode="outlined" onPress={pickImage} style={styles.uploadButton}>
+          Select Photo from Gallery
+        </Button>
+        <Button
+          mode="outlined"
+          onPress={takeSelfie}
+          style={styles.uploadButton}
+        >
+          Take a Selfie
+        </Button>
+      </>
       <TextInput
         label="Email"
         value={email}

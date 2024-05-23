@@ -14,6 +14,17 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 30,
   },
+  profileImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  uploadButton: {
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
   input: {
     marginBottom: 20,
     backgroundColor: '#fff',

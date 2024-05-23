@@ -1,32 +1,66 @@
-import React, { FC, useContext } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native';
-import { Button, Appbar, Avatar, Card, Title, Paragraph } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import NavBar from '../components/NavBar';
-import { Context } from '../context/context';
-import { auth } from '../firebaseConfig';
+import React, { FC, useContext, useEffect, useState } from 'react'
+import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native'
+import {
+  Button,
+  Appbar,
+  Avatar,
+  Card,
+  Title,
+  Paragraph,
+} from 'react-native-paper'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
+import NavBar from '../components/NavBar'
+import { Context } from '../context/context'
+import { auth, db } from '../firebaseConfig'
+import { doc, getDoc } from 'firebase/firestore'
 
-const HomePage: FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
-  const userName=JSON.stringify(auth?.currentUser?.email)
+const HomePage: FC<{ route: any; navigation: any }> = ({
+  route,
+  navigation,
+}) => {
+  const [userName, setUserName] = useState<string | null>(null)
+  const [userImage, setUserImage] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (auth.currentUser) {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid)
+        const userDoc = await getDoc(userDocRef)
+        if (userDoc.exists()) {
+          const userData = userDoc.data()
+          setUserName(userData?.email || null)
+          setUserImage(userData?.image || null) // Assuming the image URL is stored under the 'image' field
+        }
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* <Appbar.Header>
-        <Appbar.Content title="Home" />
-        <Appbar.Action icon="dots-vertical" onPress={() => {}} />
-      </Appbar.Header> */}
       <NavBar route={route} navigation={navigation} />
       <View style={styles.content}>
         <Card style={styles.card}>
           <Card.Title
             title="Welcome to ParkSpotter"
-            left={props => <Avatar.Icon {...props} icon="home" />}
+            left={props => (
+              <Avatar.Image
+                {...props}
+                source={{
+                  uri:
+                    userImage ||
+                    'https://www.w3schools.com/howto/img_avatar.png',
+                }}
+              />
+            )}
           />
           <Card.Content>
             <Title>Home Page</Title>
             <Paragraph>Enjoy exploring our features.</Paragraph>
           </Card.Content>
         </Card>
-        
+
         <Button
           onPress={() => navigation.navigate('Cars')}
           icon="car"
@@ -35,7 +69,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({ route, navigation }) =>
         >
           My Cars
         </Button>
-        
+
         <Button
           onPress={() => navigation.navigate('Groups')}
           icon="account-group"
@@ -94,6 +128,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: '#6200ea',
   },
-});
+})
 
-export default HomePage;
+export default HomePage
