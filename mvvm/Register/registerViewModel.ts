@@ -12,6 +12,7 @@ const useRegisterViewModel = (
   const [password, setPassword] = useState('')
   const [username, setUserName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [image, setImage] = useState<string | null>(null)
 
   const onSubmit = async () => {
     try {
@@ -45,6 +46,8 @@ const useRegisterViewModel = (
     onSubmit,
     isLoading,
     setIsLoading,
+    image,
+    setImage,
   }
 }
 
