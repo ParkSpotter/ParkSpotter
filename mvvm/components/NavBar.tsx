@@ -9,11 +9,8 @@ const NavBar: FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
   const openMenu = () => setVisible(true)
   const closeMenu = () => setVisible(false)
 
-  const title = route.params?.title || 'NavBar'
-
   return (
     <Appbar.Header>
-      <Appbar.Content title={title} />
       <Menu
         visible={visible}
         onDismiss={closeMenu}
