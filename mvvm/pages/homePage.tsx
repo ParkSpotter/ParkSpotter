@@ -6,6 +6,7 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
+  Dimensions,
 } from 'react-native'
 import {
   Button,
@@ -29,6 +30,8 @@ import {
   onSnapshot,
 } from 'firebase/firestore'
 import MySpinner from '../components/Spinner'
+
+const { width, height } = Dimensions.get('window')
 
 const HomePage: FC<{ route: any; navigation: any }> = ({
   route,
@@ -120,14 +123,15 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 
   return (
     <Provider>
+      <NavBar route={route} navigation={navigation} />
+      <FAB
+        style={styles.fab}
+        size="small"
+        icon="plus"
+        onPress={() => setModalVisible(true)}
+      />
       <SafeAreaView style={styles.container}>
-        <NavBar route={route} navigation={navigation} />
-        <FAB
-          style={styles.fab}
-          icon="plus"
-          onPress={() => setModalVisible(true)}
-        />
-        <ScrollView>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.content}>
             {isLoading && <MySpinner />}
             {!isLoading &&
@@ -135,7 +139,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
                 <TouchableOpacity
                   key={index}
                   onPress={() => navigateToGroup(group)}
-                  style={{ width: '80%' }}
+                  style={styles.cardContainer}
                 >
                   <Card style={styles.card}>
                     <Card.Title
@@ -185,18 +189,25 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 40,
     flex: 1,
     backgroundColor: '#f0f0f0',
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  scrollViewContent: {
     padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  cardContainer: {
+    width: '90%',
+    marginBottom: 20,
   },
   card: {
     width: '100%',
-    marginBottom: 20,
   },
   sectionButton: {
     marginTop: 20,
@@ -210,10 +221,10 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 16,
-    top: 16,
+    bottom: 16,
     backgroundColor: '#e0e0e0',
-    marginTop: 75,
-    marginRight: 330,
+    marginBottom: 730,
+    marginRight: 300,
   },
   modalContainer: {
     flex: 1,
@@ -222,11 +233,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '80%',
+    width: width * 0.8,
     padding: 20,
     backgroundColor: 'white',
     borderRadius: 8,
-    marginLeft: '10%',
+    alignSelf: 'center',
   },
   input: {
     marginBottom: 20,
