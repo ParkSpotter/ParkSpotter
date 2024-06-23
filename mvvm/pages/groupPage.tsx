@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, FlatList, Alert } from 'react-native'
+import { StyleSheet, FlatList, Alert, Dimensions } from 'react-native'
 import { Text, View, Button } from 'react-native'
 import NavBar from '../components/NavBar'
 import { auth, db } from '../../firebaseConfig'
@@ -21,6 +21,8 @@ import {
 } from 'react-native-paper'
 import MySpinner from '../components/Spinner'
 
+const { width, height } = Dimensions.get('window')
+
 const GroupPage: React.FC<{
   navigation: any
   route: any
@@ -32,7 +34,6 @@ const GroupPage: React.FC<{
   const [carModalVisible, setCarModalVisible] = useState(false)
   const [carNumber, setCarNumber] = useState('')
   const [carType, setCarType] = useState('')
-  const [isCarActive, setIsCarActive] = useState(false)
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
@@ -118,7 +119,7 @@ const GroupPage: React.FC<{
         setCarModalVisible(false)
         setCarNumber('')
         setCarType('')
-        setCarList([...carList, newCar]) // Update local state
+        setCarList(prevCars => [...prevCars, newCar]) // Update local state
       } catch (error) {
         console.error('Error adding car: ', error)
         Alert.alert('Error adding car.')
@@ -220,16 +221,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    width: '100%',
   },
   groupName: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    textAlign: 'center',
   },
   membersList: {
     width: '100%',
@@ -240,6 +244,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    textAlign: 'center',
   },
   carsList: {
     width: '100%',
@@ -250,6 +255,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    textAlign: 'center',
   },
   fab: {
     position: 'absolute',
@@ -258,11 +264,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#6200ea',
   },
   modalContent: {
-    width: '80%',
+    width: width * 0.8,
     padding: 20,
     backgroundColor: 'white',
     borderRadius: 8,
-    marginLeft: '10%',
+    alignSelf: 'center',
   },
   input: {
     marginBottom: 20,

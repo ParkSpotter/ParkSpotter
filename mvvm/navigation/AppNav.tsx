@@ -7,19 +7,20 @@ import RegisterView from '../pages/registerPage'
 import MapPage from '../pages/mapPage'
 import GroupPage from '../pages/groupPage'
 const Stack = createNativeStackNavigator()
-import editProfile from '../pages/editProfile';
-        
+
+import EditProfile from '../pages/editProfile'
+
 const AppNav = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName='Login'>
+      <Stack.Navigator initialRouteName="Login">
         <Stack.Screen
-          name='Home'
+          name="Home"
           component={HomePage}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name='Login'
+          name="Login"
           component={LoginView}
           options={{ headerShown: false }}
         />
@@ -34,17 +35,17 @@ const AppNav = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name='MyAccount'
-          component={editProfile}
+          name="MyAccount"
+          component={EditProfile}
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name='Register'
+          name="Register"
           component={RegisterView}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
-  );
-};
-export default AppNav;
+  )
+}
+export default AppNav

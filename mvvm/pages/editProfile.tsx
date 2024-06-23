@@ -1,143 +1,149 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Image, Alert } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import * as ImagePicker from 'expo-image-picker';
-import MySpinner from '../components/Spinner';
-import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
-import { auth, db } from '../../firebaseConfig';
-import { doc, updateDoc, getDoc } from 'firebase/firestore'; // Import getDoc
+import React, { useState, useEffect } from 'react'
+import { StyleSheet, View, Image, Alert } from 'react-native'
+import { TextInput, Button } from 'react-native-paper'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
+import * as ImagePicker from 'expo-image-picker'
+import MySpinner from '../components/Spinner'
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
+import { auth, db } from '../../firebaseConfig'
+import { doc, updateDoc, getDoc } from 'firebase/firestore' // Import getDoc
 
-const defaultPhotoUri = 'https://www.w3schools.com/howto/img_avatar.png';
+const defaultPhotoUri = 'https://www.w3schools.com/howto/img_avatar.png'
 
-const editProfile: React.FC<{ navigation: any; route: any }> = ({
+const EditProfile: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
-  const [username, setUserName] = useState('');
-  const userId = auth.currentUser?.uid!;
-
-  const [userImage, setUserImage] = useState<string | null>(null);
-  const [isPhotoLoading, setIsPhotoLoading] = useState(false);
+  const [username, setUserName] = useState('')
+  const userId = auth.currentUser?.uid!
+  const [userImage, setUserImage] = useState<string | null>(null)
+  const [isLoading, setisLoading] = useState(false)
+  const [isPhotoLoading, setIsPhotoLoading] = useState(false)
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setIsPhotoLoading(true)
       if (auth.currentUser) {
-        const userDocRef = doc(db, 'users', auth.currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
+        const userDocRef = doc(db, 'users', auth.currentUser.uid)
+        const userDoc = await getDoc(userDocRef)
         if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserImage(userData?.image || null);
-          setUserName(userData?.username || '');
+          const userData = userDoc.data()
+          setUserImage(userData?.image || null)
+          setUserName(userData?.username || '')
         }
       }
-    };
-    fetchUserData();
-  }, []);
+      setIsPhotoLoading(false)
+    }
+    fetchUserData()
+  }, [])
 
   const handleImagePicked = async (
     pickerResult: ImagePicker.ImagePickerResult
   ) => {
-    setIsPhotoLoading(true);
+    setisLoading(true)
     if (pickerResult.canceled) {
-      setIsPhotoLoading(false);
-      return;
+      setisLoading(false)
+      return
     }
 
     if (pickerResult.assets && pickerResult.assets.length > 0) {
-      const pickedImage = pickerResult.assets[0];
-      console.log(pickedImage.uri);
-      const response = await fetch(pickedImage.uri);
-      const blob = await response.blob();
+      const pickedImage = pickerResult.assets[0]
+      console.log(pickedImage.uri)
+      const response = await fetch(pickedImage.uri)
+      const blob = await response.blob()
       const filename = pickedImage.uri.substring(
         pickedImage.uri.lastIndexOf('/') + 1
-      );
-      const storage = getStorage();
-      const storageRef = ref(storage, `Images/${filename}`);
-      await uploadBytes(storageRef, blob);
+      )
+      const storage = getStorage()
+      const storageRef = ref(storage, `Images/${filename}`)
+      await uploadBytes(storageRef, blob)
 
-      setIsPhotoLoading(true);
-      const downloadURL = await getDownloadURL(storageRef);
-      setIsPhotoLoading(false);
-      console.log(downloadURL);
-      setUserImage(downloadURL);
+      setisLoading(true)
+      const downloadURL = await getDownloadURL(storageRef)
+      setisLoading(false)
+      console.log(downloadURL)
+      setUserImage(downloadURL)
     }
-  };
+  }
 
   const pickImage = async () => {
     const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (permissionResult.granted === false) {
-      Alert.alert('Permission to access camera roll is required!');
-      return;
+      Alert.alert('Permission to access camera roll is required!')
+      return
     }
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
-    });
-    await handleImagePicked(pickerResult);
-  };
+    })
+    await handleImagePicked(pickerResult)
+  }
 
   const takeSelfie = async () => {
-    setIsPhotoLoading(true);
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    setisLoading(true)
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
     if (permissionResult.granted === false) {
-      Alert.alert('Permission to access camera is required!');
-      return;
+      Alert.alert('Permission to access camera is required!')
+      return
     }
     const pickerResult = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
-    });
+    })
 
-    await handleImagePicked(pickerResult);
-    setIsPhotoLoading(false);
-  };
+    await handleImagePicked(pickerResult)
+    setisLoading(false)
+  }
 
   const onSaveChanges = async () => {
-    const userDocRef = doc(db, 'users', userId);
+    const userDocRef = doc(db, 'users', userId)
     await updateDoc(userDocRef, {
       image: userImage,
       username,
-    });
-    navigation.goBack();
-  };
+    })
+    navigation.goBack()
+  }
 
   return (
     <View style={styles.container}>
-      {isPhotoLoading ? (
+      {isLoading ? (
         <MySpinner />
       ) : (
         <>
-          <Image
-            source={{ uri: userImage || defaultPhotoUri }}
-            style={styles.profileImage}
-          />
+          {isPhotoLoading ? (
+            <MySpinner />
+          ) : (
+            <Image
+              source={{ uri: userImage || defaultPhotoUri }}
+              style={styles.profileImage}
+            />
+          )}
           <Button
-            mode='outlined'
+            mode="outlined"
             onPress={pickImage}
             style={styles.uploadButton}
           >
             Select Photo from Gallery
           </Button>
           <Button
-            mode='outlined'
+            mode="outlined"
             onPress={takeSelfie}
             style={styles.uploadButton}
           >
             Take a Selfie
           </Button>
           <TextInput
-            label='Username'
+            label="Username"
             value={username}
             onChangeText={setUserName}
             placeholder={username}
             style={styles.input}
             left={
               <TextInput.Icon
-                icon={() => <Icon name='account' size={20} color='#555' />}
+                icon={() => <Icon name="account" size={20} color="#555" />}
               />
             }
             theme={{
@@ -148,7 +154,7 @@ const editProfile: React.FC<{ navigation: any; route: any }> = ({
             }}
           />
           <Button
-            mode='contained'
+            mode="contained"
             onPress={onSaveChanges}
             style={styles.button}
           >
@@ -157,8 +163,8 @@ const editProfile: React.FC<{ navigation: any; route: any }> = ({
         </>
       )}
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -186,6 +192,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     backgroundColor: '#6200ea',
   },
-});
+})
 
-export default editProfile;
+export default EditProfile
