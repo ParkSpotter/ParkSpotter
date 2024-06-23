@@ -1,12 +1,14 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomePage from '../pages/homePage';
-import LoginView from '../pages/loginPage';
-import RegisterView from '../pages/registerPage';
+import React from 'react'
+import { NavigationContainer } from '@react-navigation/native'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import HomePage from '../pages/homePage'
+import LoginView from '../pages/loginPage'
+import RegisterView from '../pages/registerPage'
+import MapPage from '../pages/mapPage'
+import GroupPage from '../pages/groupPage'
+const Stack = createNativeStackNavigator()
 import editProfile from '../pages/editProfile';
-const Stack = createNativeStackNavigator();
-
+        
 const AppNav = () => {
   return (
     <NavigationContainer>
@@ -19,6 +21,16 @@ const AppNav = () => {
         <Stack.Screen
           name='Login'
           component={LoginView}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="MapPage"
+          component={MapPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="GroupPage"
+          component={GroupPage}
           options={{ headerShown: false }}
         />
         <Stack.Screen

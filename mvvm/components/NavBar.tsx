@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 const NavBar: FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
   const title = route.params?.title || 'NavBar';
 
+
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       {
