@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, FlatList, Alert, Dimensions, View } from 'react-native'
+import {
+  StyleSheet,
+  FlatList,
+  Alert,
+  Dimensions,
+  View,
+  TouchableOpacity,
+} from 'react-native'
 import { Text, Button } from 'react-native'
-import { Picker } from '@react-native-picker/picker'
 import NavBar from '../components/NavBar'
 import { auth, db } from '../../firebaseConfig'
 import {
@@ -26,10 +32,10 @@ import MySpinner from '../components/Spinner'
 
 const { width, height } = Dimensions.get('window')
 
-const GroupPage: React.FC<{
-  navigation: any
-  route: any
-}> = ({ navigation, route }) => {
+const GroupPage: React.FC<{ navigation: any; route: any }> = ({
+  navigation,
+  route,
+}) => {
   const group: any = route.params.group
   const [memberDetails, setMemberDetails] = useState<any[]>([])
   const [carList, setCarList] = useState<any[]>(group.cars || [])
@@ -37,10 +43,7 @@ const GroupPage: React.FC<{
   const [carModalVisible, setCarModalVisible] = useState(false)
   const [carNumber, setCarNumber] = useState('')
   const [carType, setCarType] = useState('')
-  const [scheduleModalVisible, setScheduleModalVisible] = useState(false)
   const [selectedCar, setSelectedCar] = useState(null)
-  const [startHour, setStartHour] = useState<number | null>(null)
-  const [endHour, setEndHour] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
@@ -68,31 +71,18 @@ const GroupPage: React.FC<{
       const userDocRef = doc(db, 'users', auth.currentUser.uid)
 
       try {
-        // Check if the user is already a member of the group
         if (group.members.includes(auth.currentUser.uid)) {
           Alert.alert('You are already a member of this group.')
           return
         }
 
-        // Start a batch
         const batch = writeBatch(db)
-
-        // Update the group's members array
-        batch.update(groupDocRef, {
-          members: arrayUnion(auth.currentUser.uid),
-        })
-
-        // Update the user's groups array
-        batch.update(userDocRef, {
-          groups: arrayUnion(group.id),
-        })
-
-        // Commit the batch
+        batch.update(groupDocRef, { members: arrayUnion(auth.currentUser.uid) })
+        batch.update(userDocRef, { groups: arrayUnion(group.id) })
         await batch.commit()
 
         Alert.alert('Joined the group successfully!')
 
-        // Refresh the member list
         const memberDoc = await getDoc(userDocRef)
         if (memberDoc.exists()) {
           const newMemberData = {
@@ -100,7 +90,6 @@ const GroupPage: React.FC<{
             username: memberDoc.data()?.username || 'Unknown User',
           }
           setMemberDetails([...memberDetails, newMemberData])
-          // Update the group members to prevent the user from joining again
           group.members.push(auth.currentUser.uid)
         }
       } catch (error) {
@@ -116,17 +105,14 @@ const GroupPage: React.FC<{
     setIsLoading(true)
     if (carNumber.trim() && carType.trim()) {
       try {
-        // Add the car details to the Firestore (assuming cars are added to the group document)
         const groupDocRef = doc(db, 'groups', group.id!)
         const newCar = { number: carNumber, type: carType }
-        await updateDoc(groupDocRef, {
-          cars: arrayUnion(newCar),
-        })
+        await updateDoc(groupDocRef, { cars: arrayUnion(newCar) })
         Alert.alert('Car added successfully!')
         setCarModalVisible(false)
         setCarNumber('')
         setCarType('')
-        setCarList(prevCars => [...prevCars, newCar]) // Update local state
+        setCarList(prevCars => [...prevCars, newCar])
       } catch (error) {
         console.error('Error adding car: ', error)
         Alert.alert('Error adding car.')
@@ -143,9 +129,7 @@ const GroupPage: React.FC<{
     setIsLoading(true)
     try {
       const groupDocRef = doc(db, 'groups', group.id!)
-      await updateDoc(groupDocRef, {
-        cars: arrayRemove(car),
-      })
+      await updateDoc(groupDocRef, { cars: arrayRemove(car) })
       Alert.alert('Car deleted successfully!')
       setCarList(prevCars => prevCars.filter(c => c.number !== car.number))
     } catch (error) {
@@ -156,50 +140,15 @@ const GroupPage: React.FC<{
     }
   }
 
-  const handleScheduleCar = (car: any) => {
-    setSelectedCar(car)
-    setScheduleModalVisible(true)
-  }
-
-  const handleConfirmSchedule = async () => {
-    if (startHour === null || endHour === null || startHour >= endHour) {
-      Alert.alert('Please select a valid start and end hour.')
-      return
-    }
-    setIsLoading(true)
-    try {
-      const groupDocRef = doc(db, 'groups', group.id!)
-      const updatedCars = carList.map(car => {
-        if (car.number === selectedCar.number) {
-          return { ...car, scheduledHours: { start: startHour, end: endHour } }
-        }
-        return car
-      })
-      await updateDoc(groupDocRef, {
-        cars: updatedCars,
-      })
-      Alert.alert('Car scheduled successfully!')
-      setScheduleModalVisible(false)
-      setCarList(updatedCars) // Update local state
-    } catch (error) {
-      console.error('Error scheduling car: ', error)
-      Alert.alert('Error scheduling car.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const renderHourOptions = () => {
-    return Array.from({ length: 24 }, (_, i) => (
-      <Picker.Item key={i} label={`${i}:00`} value={i} />
-    ))
+  const navigateToCarPage = (car: any) => {
+    navigation.navigate('CarPage', { car, group })
   }
 
   if (isLoading) return <MySpinner />
   return (
     <Provider>
       <View style={styles.container}>
-        <NavBar route={route} navigation={navigation} />
+        <NavBar route={route} navigation={navigation} title="Group" />
         <View style={styles.content}>
           <Text style={styles.groupName}>{group.name}</Text>
           <Text style={styles.sectionTitle}>Members:</Text>
@@ -217,23 +166,19 @@ const GroupPage: React.FC<{
             data={carList}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <View style={styles.carContainer}>
-                <Text
-                  style={styles.carItem}
-                >{`${item.number} - ${item.type}`}</Text>
-                <View style={styles.carActions}>
-                  <IconButton
-                    icon="delete"
-                    color="#f00"
-                    onPress={() => handleDeleteCar(item)}
-                  />
-                  <IconButton
-                    icon="calendar"
-                    color="#00f"
-                    onPress={() => handleScheduleCar(item)}
-                  />
+              <TouchableOpacity onPress={() => navigateToCarPage(item)}>
+                <View style={styles.carContainer}>
+                  <Text
+                    style={styles.carItem}
+                  >{`${item.number} - ${item.type}`}</Text>
+                  <View style={styles.carActions}>
+                    <IconButton
+                      icon="delete"
+                      onPress={() => handleDeleteCar(item)}
+                    />
+                  </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
             style={styles.carsList}
           />
@@ -276,50 +221,6 @@ const GroupPage: React.FC<{
               <PaperButton
                 mode="text"
                 onPress={() => setCarModalVisible(false)}
-                style={styles.modalButton}
-              >
-                Cancel
-              </PaperButton>
-            </Modal>
-
-            <Modal
-              visible={scheduleModalVisible}
-              onDismiss={() => setScheduleModalVisible(false)}
-              contentContainerStyle={styles.modalContent}
-            >
-              <Title>Schedule Car</Title>
-              <View style={styles.pickerContainer}>
-                <Text>Start Hour:</Text>
-                <Picker
-                  mode="dropdown"
-                  selectedValue={startHour}
-                  onValueChange={itemValue => setStartHour(itemValue)}
-                  style={styles.picker}
-                >
-                  {renderHourOptions()}
-                </Picker>
-              </View>
-              <View style={styles.pickerContainer}>
-                <Text>End Hour:</Text>
-                <Picker
-                  mode="dialog"
-                  selectedValue={endHour}
-                  onValueChange={itemValue => setEndHour(itemValue)}
-                  style={styles.picker}
-                >
-                  {renderHourOptions()}
-                </Picker>
-              </View>
-              <PaperButton
-                mode="contained"
-                onPress={handleConfirmSchedule}
-                style={styles.modalButton}
-              >
-                Confirm
-              </PaperButton>
-              <PaperButton
-                mode="text"
-                onPress={() => setScheduleModalVisible(false)}
                 style={styles.modalButton}
               >
                 Cancel
@@ -385,14 +286,6 @@ const styles = StyleSheet.create({
   carActions: {
     flexDirection: 'row',
   },
-  scheduleContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  scheduleButton: {
-    margin: 2,
-  },
   fab: {
     position: 'absolute',
     right: 16,
@@ -411,16 +304,6 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     marginTop: 10,
-  },
-  pickerContainer: {
-    marginBottom: 20,
-    width: '100%',
-    alignItems: 'center',
-  },
-  picker: {
-    width: '100%',
-    height: 44,
-    marginBottom: 150,
   },
 })
 

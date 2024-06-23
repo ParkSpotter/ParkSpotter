@@ -9,6 +9,7 @@ import GroupPage from '../pages/groupPage'
 const Stack = createNativeStackNavigator()
 
 import EditProfile from '../pages/editProfile'
+import CarPage from '../pages/carPage'
 
 const AppNav = () => {
   return (
@@ -42,6 +43,12 @@ const AppNav = () => {
         <Stack.Screen
           name="Register"
           component={RegisterView}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="CarPage"
+          component={CarPage}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

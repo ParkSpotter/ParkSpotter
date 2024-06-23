@@ -141,7 +141,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 
   return (
     <Provider>
-      <NavBar route={route} navigation={navigation} />
+      <NavBar route={route} navigation={navigation} title="Home" />
       <FAB
         style={styles.fab}
         size="small"
@@ -167,7 +167,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
                   <Card style={styles.card}>
                     <Card.Title
                       title={group.name}
-                      subtitle={Members: ${group.members.length}}
+                      subtitle={`Members: ${group.members.length}`}
                     />
                   </Card>
                 </TouchableOpacity>
@@ -270,4 +270,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default HomePage
+export default HomePage
