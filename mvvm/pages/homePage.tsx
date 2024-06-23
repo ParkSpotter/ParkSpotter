@@ -24,9 +24,9 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
   updateDoc,
   arrayUnion,
+  onSnapshot,
 } from 'firebase/firestore'
 import MySpinner from '../components/Spinner'
 
@@ -49,7 +49,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
         if (userDoc.exists()) {
           const userData = userDoc.data()
           setUserName(userData?.email || null)
-          setUserImage(userData?.image || null) // Assuming the image URL is stored under the 'image' field
+          setUserImage(userData?.image || null)
         }
       }
     }
@@ -58,21 +58,26 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
   }, [])
 
   useEffect(() => {
-    const fetchGroups = async () => {
+    const fetchGroups = () => {
       setIsLoading(true)
-      try {
-        const groupsCollection = collection(db, 'groups')
-        const groupsSnapshot = await getDocs(groupsCollection)
-        const groupsList = groupsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-        setGroups(groupsList)
-      } catch (error) {
-        console.error('Error fetching groups: ', error)
-      } finally {
-        setIsLoading(false)
-      }
+      const groupsCollection = collection(db, 'groups')
+      const unsubscribe = onSnapshot(
+        groupsCollection,
+        snapshot => {
+          const groupsList = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          setGroups(groupsList)
+          setIsLoading(false)
+        },
+        error => {
+          console.error('Error fetching groups: ', error)
+          setIsLoading(false)
+        }
+      )
+
+      return () => unsubscribe()
     }
 
     fetchGroups()
@@ -206,8 +211,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     top: 16,
-    backgroundColor: '#6200ea',
-    marginTop: 80,
+    backgroundColor: '#e0e0e0',
+    marginTop: 75,
+    marginRight: 330,
   },
   modalContainer: {
     flex: 1,
