@@ -5,13 +5,13 @@ import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyAmpH7G_RlXUfIY_HeKWUVlYHc77tapCdg',
-  authDomain: 'parkspotter-21dc6.firebaseapp.com',
-  projectId: 'parkspotter-21dc6',
-  storageBucket: 'parkspotter-21dc6.appspot.com',
-  messagingSenderId: '673932586387',
-  appId: '1:673932586387:web:9b48b46a800b43de880c66',
-  measurementId: 'G-ZMP007WH4Q',
+  apiKey: 'AIzaSyA9Dg6zlEPIv80fQY6ldhWPi64BtWJ5Lic',
+  authDomain: 'parkspotter-b0f8d.firebaseapp.com',
+  projectId: 'parkspotter-b0f8d',
+  storageBucket: 'parkspotter-b0f8d.appspot.com',
+  messagingSenderId: '252828691437',
+  appId: '1:252828691437:web:a297b09bdaea65921a15e4',
+  measurementId: 'G-NTMFBD5S4V',
 }
 
 const app = initializeApp(firebaseConfig)

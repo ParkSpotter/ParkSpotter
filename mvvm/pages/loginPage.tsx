@@ -1,18 +1,37 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Alert, Text, View, SafeAreaView, Image, Pressable } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import useLoginViewModel from './loginViewModel'
-import { loginStyles } from './loginStyles'
+import { StyleSheet } from 'react-native'
 import MySpinner from '../components/Spinner'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '../../firebaseConfig'
 const logo = require('../../assets/ParkSpotterLogo.png')
 
 const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { email, password, setEmail, setPassword, onSubmit, isLoading } =
-    useLoginViewModel((route: string) => navigation.navigate(route))
+  const [email, setEmail] = useState('bibi@gmail.com')
+  const [password, setPassword] = useState('123456')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const onSubmit = async () => {
+    try {
+      setIsLoading(true)
+      await signInWithEmailAndPassword(auth, email, password)
+      setIsLoading(false)
+      navigation.navigate('Home')
+    } catch (error: any) {
+      setIsLoading(false)
+      Alert.alert('Login Failed', error.message)
+    } finally {
+      setIsLoading(false)
+      setEmail('')
+      setPassword('')
+    }
+  }
   if (isLoading) {
     return <MySpinner />
   }
+
   return (
     <SafeAreaView style={loginStyles.container}>
       <Image source={logo} style={loginStyles.image} resizeMode="contain" />
@@ -71,5 +90,65 @@ const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
     </SafeAreaView>
   )
 }
+
+const loginStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#f0f0f0',
+  },
+  image: {
+    height: 160,
+    width: 170,
+    marginTop: 20,
+    borderRadius: 80,
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    paddingVertical: 40,
+    color: '#333',
+  },
+  inputView: {
+    gap: 15,
+    width: '100%',
+    paddingHorizontal: 40,
+    marginBottom: 5,
+  },
+  input: {
+    marginBottom: 20,
+    backgroundColor: '#fff',
+  },
+  forgetText: {
+    fontSize: 11,
+    color: 'black',
+    textAlign: 'center',
+    justifyContent: 'center',
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  button: {
+    marginVertical: 10,
+    backgroundColor: '#6200ea',
+  },
+  buttonView: {
+    width: '100%',
+    paddingHorizontal: 50,
+  },
+  footerText: {
+    textAlign: 'center',
+    color: 'gray',
+    paddingTop: 150,
+  },
+  signup: {
+    color: 'darkblue',
+    fontSize: 13,
+    alignSelf: 'center',
+  },
+})
 
 export default LoginView
