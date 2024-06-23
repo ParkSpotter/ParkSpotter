@@ -38,7 +38,9 @@ const editProfile: React.FC<{ navigation: any; route: any }> = ({
   const handleImagePicked = async (
     pickerResult: ImagePicker.ImagePickerResult
   ) => {
+    setIsPhotoLoading(true);
     if (pickerResult.canceled) {
+      setIsPhotoLoading(false);
       return;
     }
 
@@ -105,14 +107,14 @@ const editProfile: React.FC<{ navigation: any; route: any }> = ({
 
   return (
     <View style={styles.container}>
-      <Image
-        source={{ uri: userImage || defaultPhotoUri }}
-        style={styles.profileImage}
-      />
       {isPhotoLoading ? (
         <MySpinner />
       ) : (
         <>
+          <Image
+            source={{ uri: userImage || defaultPhotoUri }}
+            style={styles.profileImage}
+          />
           <Button
             mode='outlined'
             onPress={pickImage}
@@ -127,29 +129,33 @@ const editProfile: React.FC<{ navigation: any; route: any }> = ({
           >
             Take a Selfie
           </Button>
+          <TextInput
+            label='Username'
+            value={username}
+            onChangeText={setUserName}
+            placeholder={username}
+            style={styles.input}
+            left={
+              <TextInput.Icon
+                icon={() => <Icon name='account' size={20} color='#555' />}
+              />
+            }
+            theme={{
+              colors: {
+                primary: '#6200ea',
+                background: '#fff',
+              },
+            }}
+          />
+          <Button
+            mode='contained'
+            onPress={onSaveChanges}
+            style={styles.button}
+          >
+            Save Changes
+          </Button>
         </>
       )}
-      <TextInput
-        label='Username'
-        value={username}
-        onChangeText={setUserName}
-        placeholder={username}
-        style={styles.input}
-        left={
-          <TextInput.Icon
-            icon={() => <Icon name='account' size={20} color='#555' />}
-          />
-        }
-        theme={{
-          colors: {
-            primary: '#6200ea',
-            background: '#fff',
-          },
-        }}
-      />
-      <Button mode='contained' onPress={onSaveChanges} style={styles.button}>
-        Save Changes
-      </Button>
     </View>
   );
 };

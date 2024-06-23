@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -6,7 +6,7 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
-} from 'react-native'
+} from 'react-native';
 import {
   Button,
   Card,
@@ -16,9 +16,9 @@ import {
   FAB,
   Modal,
   TextInput,
-} from 'react-native-paper'
-import NavBar from '../components/NavBar'
-import { auth, db } from '../../firebaseConfig'
+} from 'react-native-paper';
+import NavBar from '../components/NavBar';
+import { auth, db } from '../../firebaseConfig';
 import {
   addDoc,
   collection,
@@ -27,91 +27,91 @@ import {
   getDocs,
   updateDoc,
   arrayUnion,
-} from 'firebase/firestore'
-import MySpinner from '../components/Spinner'
+} from 'firebase/firestore';
+import MySpinner from '../components/Spinner';
 
-const HomePage: FC<{ route: any; navigation: any }> = ({
+const homePage: FC<{ route: any; navigation: any }> = ({
   route,
   navigation,
 }) => {
-  const [userName, setUserName] = useState<string | null>(null)
-  const [userImage, setUserImage] = useState<string | null>(null)
-  const [groups, setGroups] = useState<any[]>([])
-  const [modalVisible, setModalVisible] = useState(false)
-  const [newGroupName, setNewGroupName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userImage, setUserImage] = useState<string | null>(null);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (auth.currentUser) {
-        const userDocRef = doc(db, 'users', auth.currentUser.uid)
-        const userDoc = await getDoc(userDocRef)
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-          const userData = userDoc.data()
-          setUserName(userData?.email || null)
-          setUserImage(userData?.image || null) // Assuming the image URL is stored under the 'image' field
+          const userData = userDoc.data();
+          setUserName(userData?.email || null);
+          setUserImage(userData?.image || null); // Assuming the image URL is stored under the 'image' field
         }
       }
-    }
+    };
 
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     const fetchGroups = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const groupsCollection = collection(db, 'groups')
-        const groupsSnapshot = await getDocs(groupsCollection)
-        const groupsList = groupsSnapshot.docs.map(doc => ({
+        const groupsCollection = collection(db, 'groups');
+        const groupsSnapshot = await getDocs(groupsCollection);
+        const groupsList = groupsSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }))
-        setGroups(groupsList)
+        }));
+        setGroups(groupsList);
       } catch (error) {
-        console.error('Error fetching groups: ', error)
+        console.error('Error fetching groups: ', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchGroups()
-  }, [])
+    fetchGroups();
+  }, []);
 
   const createGroup = async () => {
     if (auth.currentUser && newGroupName.trim()) {
       const groupData = {
         name: newGroupName,
         members: [auth.currentUser.uid],
-      }
+      };
 
       try {
-        setIsLoading(true)
+        setIsLoading(true);
         // Add the new group to the groups collection
-        const docRef = await addDoc(collection(db, 'groups'), groupData)
-        console.log('Document written with ID: ', docRef.id)
+        const docRef = await addDoc(collection(db, 'groups'), groupData);
+        console.log('Document written with ID: ', docRef.id);
 
         // Add the new group to the user's groups array
-        const userDocRef = doc(db, 'users', auth.currentUser.uid)
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
         await updateDoc(userDocRef, {
           groups: arrayUnion(docRef.id),
-        })
+        });
 
         // Update local state
-        setGroups([...groups, { ...groupData, id: docRef.id }])
-        setModalVisible(false)
-        setNewGroupName('')
+        setGroups([...groups, { ...groupData, id: docRef.id }]);
+        setModalVisible(false);
+        setNewGroupName('');
       } catch (e) {
-        console.error('Error adding document: ', e)
+        console.error('Error adding document: ', e);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const navigateToGroup = (group: any) => {
-    navigation.navigate('GroupPage', { group })
-  }
+    navigation.navigate('GroupPage', { group });
+  };
 
   return (
     <Provider>
@@ -119,7 +119,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
         <NavBar route={route} navigation={navigation} />
         <FAB
           style={styles.fab}
-          icon="plus"
+          icon='plus'
           onPress={() => setModalVisible(true)}
         />
         <ScrollView>
@@ -150,21 +150,21 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
             >
               <Title>Create New Group</Title>
               <TextInput
-                label="Group Name"
+                label='Group Name'
                 value={newGroupName}
                 onChangeText={setNewGroupName}
-                mode="outlined"
+                mode='outlined'
                 style={styles.input}
               />
               <Button
-                mode="contained"
+                mode='contained'
                 onPress={createGroup}
                 style={styles.modalButton}
               >
                 Create
               </Button>
               <Button
-                mode="text"
+                mode='text'
                 onPress={() => setModalVisible(false)}
                 style={styles.modalButton}
               >
@@ -175,8 +175,8 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
         </ScrollView>
       </SafeAreaView>
     </Provider>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -228,6 +228,6 @@ const styles = StyleSheet.create({
   modalButton: {
     marginTop: 10,
   },
-})
+});
 
-export default HomePage
+export default homePage;
