@@ -1,5 +1,5 @@
-import React, { FC, useContext, useEffect, useState } from 'react'
-import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native'
+import React, { FC, useContext, useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, View, Alert } from 'react-native';
 import {
   Button,
   Appbar,
@@ -7,34 +7,34 @@ import {
   Card,
   Title,
   Paragraph,
-} from 'react-native-paper'
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import NavBar from '../components/NavBar'
-import { auth, db } from '../../firebaseConfig'
-import { doc, getDoc } from 'firebase/firestore'
+} from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import NavBar from '../components/NavBar';
+import { auth, db } from '../../firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 const HomePage: FC<{ route: any; navigation: any }> = ({
   route,
   navigation,
 }) => {
-  const [userName, setUserName] = useState<string | null>(null)
-  const [userImage, setUserImage] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userImage, setUserImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (auth.currentUser) {
-        const userDocRef = doc(db, 'users', auth.currentUser.uid)
-        const userDoc = await getDoc(userDocRef)
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-          const userData = userDoc.data()
-          setUserName(userData?.email || null)
-          setUserImage(userData?.image || null) // Assuming the image URL is stored under the 'image' field
+          const userData = userDoc.data();
+          setUserName(userData?.email || null);
+          setUserImage(userData?.image || null); // Assuming the image URL is stored under the 'image' field
         }
       }
-    }
+    };
 
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -42,8 +42,8 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
       <View style={styles.content}>
         <Card style={styles.card}>
           <Card.Title
-            title="Welcome to ParkSpotter"
-            left={props => (
+            title='Welcome to ParkSpotter'
+            left={(props) => (
               <Avatar.Image
                 {...props}
                 source={{
@@ -62,8 +62,8 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 
         <Button
           onPress={() => navigation.navigate('Cars')}
-          icon="car"
-          mode="contained"
+          icon='car'
+          mode='contained'
           style={styles.sectionButton}
         >
           My Cars
@@ -71,8 +71,8 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 
         <Button
           onPress={() => navigation.navigate('Groups')}
-          icon="account-group"
-          mode="contained"
+          icon='account-group'
+          mode='contained'
           style={styles.sectionButton}
         >
           My Groups
@@ -90,18 +90,18 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
                 text: 'Yes',
                 onPress: () => navigation.navigate('Login'),
               },
-            ])
+            ]);
           }}
-          icon="logout"
-          mode="contained"
+          icon='logout'
+          mode='contained'
           style={styles.button}
         >
           Logout
         </Button>
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -127,6 +127,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: '#6200ea',
   },
-})
+});
 
-export default HomePage
+export default HomePage;

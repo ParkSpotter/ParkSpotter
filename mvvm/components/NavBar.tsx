@@ -1,70 +1,59 @@
-import React, { FC } from 'react'
-import { Alert, StyleSheet, View } from 'react-native'
-import { Appbar, Menu, Divider } from 'react-native-paper'
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
+import React, { FC } from 'react';
+import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { Appbar } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const NavBar: FC<{ route: any; navigation: any }> = ({ route, navigation }) => {
-  const [visible, setVisible] = React.useState(false)
+  const title = route.params?.title || 'NavBar';
 
-  const openMenu = () => setVisible(true)
-  const closeMenu = () => setVisible(false)
-
-  const title = route.params?.title || 'NavBar'
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      {
+        text: 'No',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: () => navigation.navigate('Login'),
+      },
+    ]);
+  };
 
   return (
-    <Appbar.Header>
-      <Appbar.Content title={title} />
-      <Menu
-        visible={visible}
-        onDismiss={closeMenu}
-        anchor={
-          <Appbar.Action
-            icon={() => <Icon name="menu" size={24} />}
-            onPress={openMenu}
-          />
-        }
-      >
-        <Menu.Item onPress={() => navigation.navigate('Home')} title="Home" />
-        <Menu.Item
-          onPress={() => {
-            Alert.alert('Logout', 'Are you sure you want to logout?', [
-              {
-                text: 'No',
-                onPress: () => console.log('Cancel Pressed'),
-                style: 'cancel',
-              },
-              {
-                text: 'Yes',
-                onPress: () => navigation.navigate('Login'),
-              },
-            ])
-          }}
-          title="LogOut"
-        />
-        <Divider />
-      </Menu>
+    <Appbar.Header style={styles.header}>
+      <Appbar.Content title={title} titleStyle={styles.title} />
+      <TouchableOpacity onPress={() => navigation.navigate('MyAccount')}>
+        <Icon name='account' size={28} color='#ffffff' style={styles.icon} />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleLogout}>
+        <Icon name='logout' size={28} color='#ffffff' style={styles.icon} />
+      </TouchableOpacity>
     </Appbar.Header>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-  navBar: {
-    flexDirection: 'row',
-    height: 60,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    backgroundColor: '#f8f8f8',
+  header: {
+    backgroundColor: '#6200ee',
+    height: 56,
+    elevation: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 2 },
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
+    color: '#ffffff',
     fontSize: 20,
     fontWeight: 'bold',
   },
-  buttonText: {
-    fontSize: 18,
+  icon: {
+    marginHorizontal: 10,
   },
-})
+});
 
-export default NavBar
+export default NavBar;
