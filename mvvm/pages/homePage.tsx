@@ -3,7 +3,6 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Alert,
   TouchableOpacity,
   ScrollView,
   Dimensions,
@@ -30,7 +29,11 @@ import {
   onSnapshot,
 } from 'firebase/firestore'
 import MySpinner from '../components/Spinner'
-
+import { Image, Text } from 'react-native-elements'
+// import { createClient } from 'pexels'
+// const client = createClient(
+//   'G1sn44GvaCpalI8NhnAp0pEo7ILem4cLJadQzyfCDw9nU9FjSnxLmCfP'
+// )
 const { width, height } = Dimensions.get('window')
 
 const HomePage: FC<{ route: any; navigation: any }> = ({
@@ -43,6 +46,8 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
   const [modalVisible, setModalVisible] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const [photo, setPhoto] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -121,6 +126,19 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
     navigation.navigate('GroupPage', { group })
   }
 
+  //   const getPhoto = async () => {
+  //     try {
+  //       const query = 'Suzuki Alto'
+  //       const photos = await client.photos.search({ query, per_page: 1 })
+  //       if (photos && photos.photos && photos.photos.length > 0) {
+  //         const photoUrl = photos.photos[0].src.original
+  //         setPhoto(photoUrl)
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching photo: ', error)
+  //     }
+  //   }
+
   return (
     <Provider>
       <NavBar route={route} navigation={navigation} />
@@ -133,6 +151,11 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.content}>
+            {/* <Button onPress={getPhoto}>HELLO</Button>
+            <Image
+              source={{ uri: photo || 'https://picsum.photos/200' }}
+              style={{ width: 200, height: 200 }}
+            /> */}
             {isLoading && <MySpinner />}
             {!isLoading &&
               groups.map((group, index) => (
@@ -144,7 +167,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
                   <Card style={styles.card}>
                     <Card.Title
                       title={group.name}
-                      subtitle={`Members: ${group.members.length}`}
+                      subtitle={Members: ${group.members.length}}
                     />
                   </Card>
                 </TouchableOpacity>
@@ -247,4 +270,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default HomePage
+export default HomePage

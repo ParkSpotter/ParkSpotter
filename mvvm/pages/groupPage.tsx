@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, FlatList, Alert, Dimensions } from 'react-native'
-import { Text, View, Button } from 'react-native'
+import { StyleSheet, FlatList, Alert, Dimensions, View } from 'react-native'
+import { Text, Button } from 'react-native'
+import { Picker } from '@react-native-picker/picker'
 import NavBar from '../components/NavBar'
 import { auth, db } from '../../firebaseConfig'
 import {
@@ -8,6 +9,7 @@ import {
   getDoc,
   updateDoc,
   arrayUnion,
+  arrayRemove,
   writeBatch,
 } from 'firebase/firestore'
 import {
@@ -18,6 +20,7 @@ import {
   Provider,
   Title,
   Button as PaperButton,
+  IconButton,
 } from 'react-native-paper'
 import MySpinner from '../components/Spinner'
 
@@ -34,6 +37,10 @@ const GroupPage: React.FC<{
   const [carModalVisible, setCarModalVisible] = useState(false)
   const [carNumber, setCarNumber] = useState('')
   const [carType, setCarType] = useState('')
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false)
+  const [selectedCar, setSelectedCar] = useState(null)
+  const [startHour, setStartHour] = useState<number | null>(null)
+  const [endHour, setEndHour] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
@@ -132,6 +139,62 @@ const GroupPage: React.FC<{
     }
   }
 
+  const handleDeleteCar = async (car: any) => {
+    setIsLoading(true)
+    try {
+      const groupDocRef = doc(db, 'groups', group.id!)
+      await updateDoc(groupDocRef, {
+        cars: arrayRemove(car),
+      })
+      Alert.alert('Car deleted successfully!')
+      setCarList(prevCars => prevCars.filter(c => c.number !== car.number))
+    } catch (error) {
+      console.error('Error deleting car: ', error)
+      Alert.alert('Error deleting car.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleScheduleCar = (car: any) => {
+    setSelectedCar(car)
+    setScheduleModalVisible(true)
+  }
+
+  const handleConfirmSchedule = async () => {
+    if (startHour === null || endHour === null || startHour >= endHour) {
+      Alert.alert('Please select a valid start and end hour.')
+      return
+    }
+    setIsLoading(true)
+    try {
+      const groupDocRef = doc(db, 'groups', group.id!)
+      const updatedCars = carList.map(car => {
+        if (car.number === selectedCar.number) {
+          return { ...car, scheduledHours: { start: startHour, end: endHour } }
+        }
+        return car
+      })
+      await updateDoc(groupDocRef, {
+        cars: updatedCars,
+      })
+      Alert.alert('Car scheduled successfully!')
+      setScheduleModalVisible(false)
+      setCarList(updatedCars) // Update local state
+    } catch (error) {
+      console.error('Error scheduling car: ', error)
+      Alert.alert('Error scheduling car.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const renderHourOptions = () => {
+    return Array.from({ length: 24 }, (_, i) => (
+      <Picker.Item key={i} label={`${i}:00`} value={i} />
+    ))
+  }
+
   if (isLoading) return <MySpinner />
   return (
     <Provider>
@@ -154,9 +217,23 @@ const GroupPage: React.FC<{
             data={carList}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <Text
-                style={styles.carItem}
-              >{`${item.number} - ${item.type}`}</Text>
+              <View style={styles.carContainer}>
+                <Text
+                  style={styles.carItem}
+                >{`${item.number} - ${item.type}`}</Text>
+                <View style={styles.carActions}>
+                  <IconButton
+                    icon="delete"
+                    color="#f00"
+                    onPress={() => handleDeleteCar(item)}
+                  />
+                  <IconButton
+                    icon="calendar"
+                    color="#00f"
+                    onPress={() => handleScheduleCar(item)}
+                  />
+                </View>
+              </View>
             )}
             style={styles.carsList}
           />
@@ -199,6 +276,50 @@ const GroupPage: React.FC<{
               <PaperButton
                 mode="text"
                 onPress={() => setCarModalVisible(false)}
+                style={styles.modalButton}
+              >
+                Cancel
+              </PaperButton>
+            </Modal>
+
+            <Modal
+              visible={scheduleModalVisible}
+              onDismiss={() => setScheduleModalVisible(false)}
+              contentContainerStyle={styles.modalContent}
+            >
+              <Title>Schedule Car</Title>
+              <View style={styles.pickerContainer}>
+                <Text>Start Hour:</Text>
+                <Picker
+                  mode="dropdown"
+                  selectedValue={startHour}
+                  onValueChange={itemValue => setStartHour(itemValue)}
+                  style={styles.picker}
+                >
+                  {renderHourOptions()}
+                </Picker>
+              </View>
+              <View style={styles.pickerContainer}>
+                <Text>End Hour:</Text>
+                <Picker
+                  mode="dialog"
+                  selectedValue={endHour}
+                  onValueChange={itemValue => setEndHour(itemValue)}
+                  style={styles.picker}
+                >
+                  {renderHourOptions()}
+                </Picker>
+              </View>
+              <PaperButton
+                mode="contained"
+                onPress={handleConfirmSchedule}
+                style={styles.modalButton}
+              >
+                Confirm
+              </PaperButton>
+              <PaperButton
+                mode="text"
+                onPress={() => setScheduleModalVisible(false)}
                 style={styles.modalButton}
               >
                 Cancel
@@ -250,12 +371,27 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
   },
-  carItem: {
-    fontSize: 16,
+  carContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    textAlign: 'center',
+  },
+  carItem: {
+    fontSize: 16,
+  },
+  carActions: {
+    flexDirection: 'row',
+  },
+  scheduleContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  scheduleButton: {
+    margin: 2,
   },
   fab: {
     position: 'absolute',
@@ -275,6 +411,16 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     marginTop: 10,
+  },
+  pickerContainer: {
+    marginBottom: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  picker: {
+    width: '100%',
+    height: 44,
+    marginBottom: 150,
   },
 })
 
