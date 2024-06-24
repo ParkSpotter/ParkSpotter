@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Alert, Text, View, SafeAreaView, Image, Pressable } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
@@ -6,28 +6,65 @@ import { StyleSheet } from 'react-native'
 import MySpinner from '../components/Spinner'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../../firebaseConfig'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
 const logo = require('../../assets/ParkSpotterLogo.png')
 
 const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [email, setEmail] = useState('bibi@gmail.com')
-  const [password, setPassword] = useState('123456')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const checkUserLoggedIn = async () => {
+      try {
+        const savedEmail = await AsyncStorage.getItem('email')
+        const savedPassword = await AsyncStorage.getItem('password')
+        if (savedEmail && savedPassword) {
+          await signInWithEmailAndPassword(auth, savedEmail, savedPassword)
+          navigation.navigate('Home')
+        }
+      } catch (error) {
+        console.error('Failed to login automatically', error)
+        // Continue to show login screen
+      }
+    }
+
+    checkUserLoggedIn()
+  }, [])
+
+  const saveUserData = async (email: string, password: string) => {
+    try {
+      await AsyncStorage.setItem('email', email)
+      await AsyncStorage.setItem('password', password)
+    } catch (error) {
+      console.error('Failed to save user data to AsyncStorage', error)
+    }
+  }
+
+  const clearUserData = async () => {
+    try {
+      await AsyncStorage.removeItem('email')
+      await AsyncStorage.removeItem('password')
+    } catch (error) {
+      console.error('Failed to clear user data from AsyncStorage', error)
+    }
+  }
 
   const onSubmit = async () => {
     try {
       setIsLoading(true)
       await signInWithEmailAndPassword(auth, email, password)
-      setIsLoading(false)
+      await saveUserData(email, password)
       navigation.navigate('Home')
     } catch (error: any) {
       setIsLoading(false)
       Alert.alert('Login Failed', error.message)
     } finally {
       setIsLoading(false)
-      setEmail('')
-      setPassword('')
     }
   }
+
   if (isLoading) {
     return <MySpinner />
   }
