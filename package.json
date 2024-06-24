@@ -35,7 +35,8 @@
     "react-native-paper": "^5.12.3",
     "react-native-spinkit": "^1.5.1",
     "react-native-vector-icons": "^10.1.0",
-    "react-native-web": "~0.19.10"
+    "react-native-web": "~0.19.10",
+    "react-native-webview": "^13.10.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
