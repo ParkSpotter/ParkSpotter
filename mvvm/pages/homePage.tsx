@@ -30,10 +30,7 @@ import {
 } from 'firebase/firestore'
 import MySpinner from '../components/Spinner'
 import { Image, Text } from 'react-native-elements'
-// import { createClient } from 'pexels'
-// const client = createClient(
-//   'G1sn44GvaCpalI8NhnAp0pEo7ILem4cLJadQzyfCDw9nU9FjSnxLmCfP'
-// )
+
 const { width, height } = Dimensions.get('window')
 
 const HomePage: FC<{ route: any; navigation: any }> = ({
@@ -43,11 +40,11 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
   const [userName, setUserName] = useState<string | null>(null)
   const [userImage, setUserImage] = useState<string | null>(null)
   const [groups, setGroups] = useState<any[]>([])
+  const [myGroups, setMyGroups] = useState<any[]>([])
   const [modalVisible, setModalVisible] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-
-  const [photo, setPhoto] = useState<string | null>(null)
+  const [showMyGroups, setShowMyGroups] = useState(true)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -77,6 +74,14 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
             ...doc.data(),
           }))
           setGroups(groupsList)
+
+          if (auth.currentUser) {
+            const userGroups = groupsList.filter(group =>
+              group.members.includes(auth.currentUser.uid)
+            )
+            setMyGroups(userGroups)
+          }
+          
           setIsLoading(false)
         },
         error => {
@@ -100,18 +105,16 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 
       try {
         setIsLoading(true)
-        // Add the new group to the groups collection
         const docRef = await addDoc(collection(db, 'groups'), groupData)
         console.log('Document written with ID: ', docRef.id)
 
-        // Add the new group to the user's groups array
         const userDocRef = doc(db, 'users', auth.currentUser.uid)
         await updateDoc(userDocRef, {
           groups: arrayUnion(docRef.id),
         })
 
-        // Update local state
         setGroups([...groups, { ...groupData, id: docRef.id }])
+        setMyGroups([...myGroups, { ...groupData, id: docRef.id }])
         setModalVisible(false)
         setNewGroupName('')
       } catch (e) {
@@ -126,19 +129,6 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
     navigation.navigate('GroupPage', { group })
   }
 
-  //   const getPhoto = async () => {
-  //     try {
-  //       const query = 'Suzuki Alto'
-  //       const photos = await client.photos.search({ query, per_page: 1 })
-  //       if (photos && photos.photos && photos.photos.length > 0) {
-  //         const photoUrl = photos.photos[0].src.original
-  //         setPhoto(photoUrl)
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching photo: ', error)
-  //     }
-  //   }
-
   return (
     <Provider>
       <NavBar route={route} navigation={navigation} title="Home" />
@@ -151,16 +141,27 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
             onPress={() => setModalVisible(true)}
           />
         </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            mode={showMyGroups ? "contained" : "outlined"}
+            onPress={() => setShowMyGroups(true)}
+            style={styles.filterButton}
+          >
+            My Groups
+          </Button>
+          <Button
+            mode={!showMyGroups ? "contained" : "outlined"}
+            onPress={() => setShowMyGroups(false)}
+            style={styles.filterButton}
+          >
+            All Groups
+          </Button>
+        </View>
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.content}>
-            {/* <Button onPress={getPhoto}>HELLO</Button>
-            <Image
-              source={{ uri: photo || 'https://picsum.photos/200' }}
-              style={{ width: 200, height: 200 }}
-            /> */}
             {isLoading && <MySpinner />}
             {!isLoading &&
-              groups.map((group, index) => (
+              (showMyGroups ? myGroups : groups).map((group, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => navigateToGroup(group)}
@@ -224,10 +225,18 @@ const styles = StyleSheet.create({
   },
   cardSubtitle: {},
   fabContainer: {
-    height: 40, // Adjust height as needed for a smaller container
+    height: 40,
     justifyContent: 'center',
     alignItems: 'flex-end',
     paddingHorizontal: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  filterButton: {
+    marginHorizontal: 5,
   },
   scrollViewContent: {
     padding: 20,
@@ -244,15 +253,6 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-  },
-  sectionButton: {
-    marginTop: 20,
-    width: '90%',
-    backgroundColor: '#6200ea',
-  },
-  button: {
-    marginTop: 20,
-    backgroundColor: '#6200ea',
   },
   fab: {
     marginTop: 20,
