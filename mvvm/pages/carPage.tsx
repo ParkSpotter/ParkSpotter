@@ -11,7 +11,7 @@ import {
 import * as ImagePicker from 'expo-image-picker'
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { updateDoc, doc } from 'firebase/firestore'
-import { db } from '../../firebaseConfig'
+import { auth, db } from '../../firebaseConfig'
 import MySpinner from '../components/Spinner'
 import NavBar from '../components/NavBar'
 
@@ -21,14 +21,15 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
-  const car = route.params.car
-  const group = route.params.group
+  const { car, group } = route.params
   const [visible, setVisible] = useState(false)
   const [carName, setCarName] = useState(car.type)
   const [carNumber, setCarNumber] = useState(car.number)
   const [isLoading, setIsLoading] = useState(false)
   const [image, setImage] = useState(car.photo || null)
   const [isPhotoLoading, setIsPhotoLoading] = useState(false)
+  const [isOccupied, setIsOccupied] = useState(!car.available)
+  const [occupiedBy, setOccupiedBy] = useState(car.occupiedBy || null)
 
   const showModal = () => setVisible(true)
   const hideModal = () => setVisible(false)
@@ -118,6 +119,39 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
     }
   }
 
+  const handleToggleOccupied = async () => {
+    setIsLoading(true)
+    try {
+      const currentUser = auth.currentUser?.uid
+      const groupDocRef = doc(db, 'groups', group.id!)
+      const updatedCars = group.cars.map((c: any) => {
+        if (c.number === car.number) {
+          return {
+            ...c,
+            available: isOccupied,
+            occupiedBy: isOccupied ? null : currentUser,
+          }
+        }
+        return c
+      })
+      await updateDoc(groupDocRef, {
+        cars: updatedCars,
+      })
+      car.available = isOccupied
+      car.occupiedBy = isOccupied ? null : currentUser
+      setIsOccupied(!isOccupied)
+      setOccupiedBy(isOccupied ? null : currentUser)
+      Alert.alert(
+        `Car status updated to ${isOccupied ? 'Available' : 'Occupied'}!`
+      )
+    } catch (error) {
+      console.error('Error updating car status: ', error)
+      Alert.alert('Error updating car status.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  if (isLoading) return <MySpinner />
   return (
     <Provider>
       <View style={styles.container}>
@@ -136,6 +170,14 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
             style={styles.editButton}
           >
             Edit
+          </Button>
+          <Button
+            mode="contained"
+            icon="car"
+            onPress={handleToggleOccupied}
+            style={styles.occupiedButton}
+          >
+            {isOccupied ? 'Occupied' : 'Set as Occupied'}
           </Button>
         </View>
         <Portal>
@@ -230,6 +272,10 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginTop: 10,
+  },
+  occupiedButton: {
+    marginTop: 10,
+    backgroundColor: '#b00020',
   },
   modalContainer: {
     backgroundColor: 'white',
