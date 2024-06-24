@@ -7,7 +7,7 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native'
-import { Text } from 'react-native'
+import { Text, Button } from 'react-native'
 import NavBar from '../components/NavBar'
 import { auth, db } from '../../firebaseConfig'
 import {
@@ -208,16 +208,18 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
             data={carList}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => navigateToMapPage(item)}>
+              <TouchableOpacity onPress={() => navigateToCarPage(item)}>
                 <View style={styles.carContainer}>
                   <Text
                     style={styles.carItem}
                   >{`${item.number} - ${item.type}`}</Text>
                   <View style={styles.carActions}>
-                    <IconButton
-                      icon="delete"
-                      onPress={() => handleDeleteCar(item)}
-                    />
+                    {auth.currentUser?.uid === group.creator_id && (
+                      <IconButton
+                        icon="delete"
+                        onPress={() => handleDeleteCar(item)}
+                      />
+                    )}
                   </View>
                 </View>
               </TouchableOpacity>
@@ -231,7 +233,32 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
             onPress={() => setCarModalVisible(true)}
           />
 
-          <Button title="Join Group" onPress={handleJoinGroup} />
+          <PaperButton
+            mode="contained"
+            onPress={handleJoinGroup}
+            style={styles.button}
+          >
+            Join Group
+          </PaperButton>
+          <PaperButton
+            mode="contained"
+            onPress={navigateToMapPage}
+            style={{
+              ...styles.button,
+              backgroundColor: 'green',
+            }}
+          >
+            Group Map
+          </PaperButton>
+          {auth.currentUser?.uid === group.creator_id && (
+            <PaperButton
+              mode="contained"
+              onPress={handleDeleteGroup}
+              style={styles.deleteButton}
+            >
+              Delete Group
+            </PaperButton>
+          )}
           <Portal>
             <Modal
               visible={carModalVisible}
