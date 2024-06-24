@@ -1,10 +1,9 @@
-import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
-import { Text, View } from 'react-native';
-import NavBar from '../components/NavBar';
-import { LeafletView, MapMarker } from 'react-native-leaflet-view';
+import React from 'react'
+import { Pressable, StyleSheet } from 'react-native'
+import { Text, View } from 'react-native'
+import NavBar from '../components/NavBar'
+import { LeafletView, MapMarker } from 'react-native-leaflet-view'
 //import RNLocation from 'react-native-location';
-
 
 // RNLocation.configure({
 //   distanceFilter: 5.0
@@ -22,8 +21,13 @@ import { LeafletView, MapMarker } from 'react-native-leaflet-view';
 // })
 
 const markers = [
-  { id: 1, position: { lat: 31.894756, lng: 34.809322 }, title: "Marker 1", description: "Description 1" },
-];
+  {
+    id: 1,
+    position: { lat: 31.894756, lng: 34.809322 },
+    title: 'Marker 1',
+    description: 'Description 1',
+  },
+]
 
 const MapPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
@@ -31,7 +35,7 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <NavBar route={route} navigation={navigation} title='Map' />
+      <NavBar route={route} navigation={navigation} title="Map" />
       <Text>Map Page</Text>
       <Pressable onPress={() => navigation.navigate('Home')}>
         <Text>Go to Home</Text>
@@ -42,8 +46,7 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
             position: marker.position,
             icon: '📍',
             size: [32, 32],
-            onPress: () => {
-            },
+            onPress: () => {},
             title: marker.title,
             description: marker.description,
           }))}
@@ -52,7 +55,7 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
         />
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -66,6 +69,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-});
+})
 
-export default MapPage;
+export default MapPage
