@@ -47,15 +47,6 @@ const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   }
 
-  const clearUserData = async () => {
-    try {
-      await AsyncStorage.removeItem('email')
-      await AsyncStorage.removeItem('password')
-    } catch (error) {
-      console.error('Failed to clear user data from AsyncStorage', error)
-    }
-  }
-
   const onSubmit = async () => {
     try {
       setIsLoading(true)
@@ -66,6 +57,8 @@ const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
       setIsLoading(false)
       Alert.alert('Login Failed', error.message)
     } finally {
+      setEmail('')
+      setPassword('')
       setIsLoading(false)
     }
   }
