@@ -3,7 +3,7 @@ import { View, StyleSheet, Dimensions, Image, Alert } from 'react-native'
 import { Text, Button } from 'react-native-paper'
 import { Picker } from '@react-native-picker/picker'
 import NavBar from '../components/NavBar'
-import { getDoc, doc, updateDoc } from 'firebase/firestore'
+import { updateDoc, doc } from 'firebase/firestore'
 import { db } from '../../firebaseConfig'
 import MySpinner from '../components/Spinner'
 
@@ -68,7 +68,7 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
 
         {car.scheduledHours && !reschedule ? (
           <>
-            <Text>
+            <Text style={styles.scheduleInfo}>
               Car is scheduled from {car.scheduledHours.start}:00 to{' '}
               {car.scheduledHours.end}:00
             </Text>
@@ -83,7 +83,7 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
         ) : (
           <>
             <View style={styles.pickerContainer}>
-              <Text>Start Hour:</Text>
+              <Text style={styles.pickerLabel}>Start Hour:</Text>
               <Picker
                 mode="dropdown"
                 selectedValue={startHour}
@@ -94,7 +94,7 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
               </Picker>
             </View>
             <View style={styles.pickerContainer}>
-              <Text>End Hour:</Text>
+              <Text style={styles.pickerLabel}>End Hour:</Text>
               <Picker
                 mode="dropdown"
                 selectedValue={endHour}
@@ -131,30 +131,55 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   carImage: {
-    width: 200,
-    height: 200,
+    width: width * 0.8,
+    height: width * 0.6,
+    borderRadius: 10,
     marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#cccccc',
   },
   carName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 10,
+    color: '#333333',
+    textAlign: 'center',
+    fontFamily: 'HelveticaNeue-Medium',
   },
   carNumber: {
     fontSize: 18,
     marginBottom: 20,
+    color: '#666666',
+    textAlign: 'center',
+    fontFamily: 'HelveticaNeue-Light',
+  },
+  scheduleInfo: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: '#333333',
+    textAlign: 'center',
+    fontFamily: 'HelveticaNeue',
   },
   pickerContainer: {
     marginBottom: 20,
-    width: '100%',
+    width: '80%',
     alignItems: 'center',
+  },
+  pickerLabel: {
+    color: '#333333',
+    marginBottom: 5,
+    fontFamily: 'HelveticaNeue-Medium',
   },
   picker: {
     width: '100%',
     height: 44,
+    color: '#333333',
   },
   scheduleButton: {
     marginTop: 10,
+    width: '80%',
+    alignSelf: 'center',
+    backgroundColor: '#4CAF50',
   },
 })
 

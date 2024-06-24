@@ -29,7 +29,11 @@ import {
   IconButton,
 } from 'react-native-paper'
 import MySpinner from '../components/Spinner'
+import { createClient } from 'pexels'
 
+const client = createClient(
+  'G1sn44GvaCpalI8NhnAp0pEo7ILem4cLJadQzyfCDw9nU9FjSnxLmCfP'
+)
 const { width, height } = Dimensions.get('window')
 
 const GroupPage: React.FC<{ navigation: any; route: any }> = ({
@@ -43,7 +47,7 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
   const [carModalVisible, setCarModalVisible] = useState(false)
   const [carNumber, setCarNumber] = useState('')
   const [carType, setCarType] = useState('')
-  const [selectedCar, setSelectedCar] = useState(null)
+  const [photoUrl, setPhotoUrl] = useState('')
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
@@ -101,12 +105,27 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
     }
   }
 
+  const getCarPhoto = async (query: string) => {
+    try {
+      const photos = await client.photos.search({ query, per_page: 1 })
+      if (photos && photos.photos && photos.photos.length > 0) {
+        const photoUrl = photos.photos[0].src.original
+        return photoUrl
+      }
+    } catch (error) {
+      console.error('Error fetching car photo: ', error)
+    }
+    return null
+  }
+
   const handleAddCar = async () => {
     setIsLoading(true)
     if (carNumber.trim() && carType.trim()) {
       try {
+        const carPhotoUrl = await getCarPhoto(carType)
+
         const groupDocRef = doc(db, 'groups', group.id!)
-        const newCar = { number: carNumber, type: carType }
+        const newCar = { number: carNumber, type: carType, photo: carPhotoUrl }
         await updateDoc(groupDocRef, { cars: arrayUnion(newCar) })
         Alert.alert('Car added successfully!')
         setCarModalVisible(false)
