@@ -2,6 +2,8 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "esModuleInterop": true,
-    "strict": true
+    "strict": true,
+    "module": "esnext", // Allows for modern module syntax, necessary for top-level await
+    "target": "es2017" // Ensures compatibility with environments that support async/await
   }
 }
