@@ -18,7 +18,9 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null
+  )
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -55,7 +57,7 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
               position: marker.position,
               icon: '📍',
               size: [32, 32],
-              onPress: () => { },
+              onPress: () => {},
               title: marker.title,
               description: marker.description,
             }))}
