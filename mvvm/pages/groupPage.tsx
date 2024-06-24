@@ -7,9 +7,10 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native'
-import { Text, Button } from 'react-native'
+import { Text } from 'react-native'
 import NavBar from '../components/NavBar'
 import { auth, db } from '../../firebaseConfig'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import {
   doc,
   getDoc,
@@ -48,7 +49,8 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
   const [carModalVisible, setCarModalVisible] = useState(false)
   const [carNumber, setCarNumber] = useState('')
   const [carType, setCarType] = useState('')
-  const [photoUrl, setPhotoUrl] = useState('')
+  const [carStatus, setCarStatus] = useState(false)
+  const [isOccupiedBy, setIsOccupiedBy] = useState(null)
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
@@ -68,6 +70,23 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
     }
     fetchMemberDetails()
   }, [group.members])
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      setIsLoading(true)
+      try {
+        const groupDoc = await getDoc(doc(db, 'groups', group.id!))
+        if (groupDoc.exists()) {
+          setCarList(groupDoc.data()?.cars || [])
+        }
+      } catch (error) {
+        console.error('Error fetching cars: ', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchCars()
+  }, [group.id])
 
   const handleJoinGroup = async () => {
     setIsLoading(true)
@@ -106,6 +125,42 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
     }
   }
 
+  const handleLeaveGroup = async () => {
+    setIsLoading(true)
+    if (auth.currentUser) {
+      const groupDocRef = doc(db, 'groups', group.id!)
+      const userDocRef = doc(db, 'users', auth.currentUser.uid)
+
+      try {
+        if (!group.members.includes(auth.currentUser.uid)) {
+          Alert.alert('You are not a member of this group.')
+          return
+        }
+
+        const batch = writeBatch(db)
+        batch.update(groupDocRef, {
+          members: arrayRemove(auth.currentUser.uid),
+        })
+        batch.update(userDocRef, { groups: arrayRemove(group.id) })
+        await batch.commit()
+
+        Alert.alert('Left the group successfully!')
+
+        setMemberDetails(
+          memberDetails.filter(member => member.id !== auth.currentUser.uid)
+        )
+        group.members = group.members.filter(
+          (id: string) => id !== auth.currentUser.uid
+        )
+      } catch (error) {
+        console.error('Error leaving group: ', error)
+        Alert.alert('Error leaving the group.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  }
+
   const getCarPhoto = async (query: string) => {
     try {
       const photos = await client.photos.search({ query, per_page: 1 })
@@ -126,7 +181,13 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
         const carPhotoUrl = await getCarPhoto(carType)
 
         const groupDocRef = doc(db, 'groups', group.id!)
-        const newCar = { number: carNumber, type: carType, photo: carPhotoUrl }
+        const newCar = {
+          number: carNumber,
+          type: carType,
+          photo: carPhotoUrl,
+          available: carStatus,
+          isOccupiedBy,
+        }
         await updateDoc(groupDocRef, { cars: arrayUnion(newCar) })
         Alert.alert('Car added successfully!')
         setCarModalVisible(false)
@@ -179,12 +240,21 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
   }
 
   const navigateToCarPage = (car: any) => {
-    navigation.navigate('CarPage', { car, group })
+    navigation.navigate('CarPage', {
+      car,
+      group,
+      setCarStatus,
+      carStatus,
+      isOccupiedBy,
+      setIsOccupiedBy,
+    })
   }
 
-  const navigateToMapPage = (map: any) => {
-    navigation.navigate('MapPage', { map, group })
+  const navigateToMapPage = () => {
+    navigation.navigate('MapPage', { group })
   }
+
+  const isMember = group.members.includes(auth.currentUser?.uid)
 
   if (isLoading) return <MySpinner />
   return (
@@ -208,16 +278,26 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
             data={carList}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => navigateToCarPage(item)}>
+              <TouchableOpacity
+                onPress={() => isMember && navigateToCarPage(item)}
+                disabled={!isMember}
+                style={{
+                  backgroundColor: !item.available ? '#e0e0e0' : '#f0f0f0',
+                }}
+              >
                 <View style={styles.carContainer}>
                   <Text
                     style={styles.carItem}
                   >{`${item.number} - ${item.type}`}</Text>
+                  <Text style={styles.carStatus}>
+                    {item.available ? 'Available' : 'Occupied'}
+                  </Text>
                   <View style={styles.carActions}>
                     {auth.currentUser?.uid === group.creator_id && (
                       <IconButton
                         icon="delete"
                         onPress={() => handleDeleteCar(item)}
+                        disabled={!isMember}
                       />
                     )}
                   </View>
@@ -227,38 +307,70 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
             style={styles.carsList}
           />
 
-          <FAB
-            style={styles.fab}
-            icon="car"
-            onPress={() => setCarModalVisible(true)}
-          />
-
-          <PaperButton
-            mode="contained"
-            onPress={handleJoinGroup}
-            style={styles.button}
-          >
-            Join Group
-          </PaperButton>
-          <PaperButton
-            mode="contained"
-            onPress={navigateToMapPage}
-            style={{
-              ...styles.button,
-              backgroundColor: 'green',
-            }}
-          >
-            Group Map
-          </PaperButton>
-          {auth.currentUser?.uid === group.creator_id && (
+          <View style={styles.buttonContainer}>
+            {!isMember ? (
+              <PaperButton
+                mode="contained"
+                onPress={handleJoinGroup}
+                icon={() => (
+                  <MaterialCommunityIcons
+                    name="account-plus"
+                    size={30}
+                    color="white"
+                  />
+                )}
+                style={styles.iconButton}
+              />
+            ) : (
+              <PaperButton
+                mode="contained"
+                onPress={handleLeaveGroup}
+                icon={() => (
+                  <MaterialCommunityIcons
+                    name="account-remove"
+                    size={30}
+                    color="white"
+                  />
+                )}
+                style={[styles.iconButton, styles.leaveButton]}
+              />
+            )}
             <PaperButton
               mode="contained"
-              onPress={handleDeleteGroup}
-              style={styles.deleteButton}
-            >
-              Delete Group
-            </PaperButton>
-          )}
+              onPress={navigateToMapPage}
+              icon={() => (
+                <MaterialCommunityIcons name="map" size={30} color="white" />
+              )}
+              style={[styles.iconButton, styles.mapButton]}
+              disabled={!isMember}
+            />
+            {isMember && (
+              <PaperButton
+                mode="contained"
+                onPress={() => setCarModalVisible(true)}
+                icon={() => (
+                  <MaterialCommunityIcons name="car" size={30} color="white" />
+                )}
+                style={[styles.iconButton, styles.addButton]}
+              />
+            )}
+            {auth.currentUser?.uid === group.creator_id && (
+              <PaperButton
+                mode="contained"
+                onPress={handleDeleteGroup}
+                icon={() => (
+                  <MaterialCommunityIcons
+                    name="delete"
+                    size={30}
+                    color="white"
+                  />
+                )}
+                style={[styles.iconButton, styles.deleteButton]}
+                disabled={!isMember}
+              />
+            )}
+          </View>
+
           <Portal>
             <Modal
               visible={carModalVisible}
@@ -283,6 +395,7 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
               <PaperButton
                 mode="contained"
                 onPress={handleAddCar}
+                icon="car"
                 style={styles.modalButton}
               >
                 Add Car
@@ -290,6 +403,7 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
               <PaperButton
                 mode="text"
                 onPress={() => setCarModalVisible(false)}
+                icon="cancel"
                 style={styles.modalButton}
               >
                 Cancel
@@ -352,22 +466,52 @@ const styles = StyleSheet.create({
   carItem: {
     fontSize: 16,
   },
+  carStatus: {
+    fontSize: 14,
+    color: '#555',
+  },
   carActions: {
     flexDirection: 'row',
   },
-  fab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    backgroundColor: '#6200ea',
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 20,
   },
-  button: {
-    marginTop: 10,
+  iconButton: {
+    width: 60,
+    height: 60,
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    borderRadius: 30,
+    marginHorizontal: 5,
+  },
+  leaveButton: {
+    backgroundColor: '#b00020',
+  },
+  mapButton: {
+    backgroundColor: 'green',
+  },
+  addButton: {
     backgroundColor: '#6200ea',
   },
   deleteButton: {
-    marginTop: 10,
     backgroundColor: '#b00020',
+  },
+  buttonLabel: {
+    fontSize: 10,
+  },
+  fab: {
+    backgroundColor: '#6200ea',
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+  },
+  deleteButton: {
+    backgroundColor: '#b00020',
+    marginHorizontal: 5,
   },
   modalContent: {
     width: width * 0.8,
