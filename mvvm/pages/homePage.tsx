@@ -142,13 +142,15 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
   return (
     <Provider>
       <NavBar route={route} navigation={navigation} title="Home" />
-      <FAB
-        style={styles.fab}
-        size="small"
-        icon="plus"
-        onPress={() => setModalVisible(true)}
-      />
       <SafeAreaView style={styles.container}>
+        <View style={styles.fabContainer}>
+          <FAB
+            style={styles.fab}
+            size="small"
+            icon="plus"
+            onPress={() => setModalVisible(true)}
+          />
+        </View>
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <View style={styles.content}>
             {/* <Button onPress={getPhoto}>HELLO</Button>
@@ -167,7 +169,12 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
                   <Card style={styles.card}>
                     <Card.Title
                       title={group.name}
-                      subtitle={`Members: ${group.members.length}`}
+                      subtitle={`Members: ${
+                        group.members.length
+                      }        Cars Number: ${
+                        group.cars ? group.cars.length : 0
+                      }`}
+                      subtitleStyle={styles.cardSubtitle}
                     />
                   </Card>
                 </TouchableOpacity>
@@ -212,9 +219,15 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 40,
     flex: 1,
     backgroundColor: '#f0f0f0',
+  },
+  cardSubtitle: {},
+  fabContainer: {
+    height: 40, // Adjust height as needed for a smaller container
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
   },
   scrollViewContent: {
     padding: 20,
@@ -242,12 +255,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#6200ea',
   },
   fab: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    backgroundColor: '#e0e0e0',
-    marginBottom: 730,
-    marginRight: 300,
+    marginTop: 20,
+    backgroundColor: '#6200ea',
   },
   modalContainer: {
     flex: 1,
