@@ -182,6 +182,10 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
     navigation.navigate('CarPage', { car, group })
   }
 
+  const navigateToMapPage = (map: any) => {
+    navigation.navigate('MapPage', { map, group })
+  }
+
   if (isLoading) return <MySpinner />
   return (
     <Provider>
@@ -204,7 +208,7 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
             data={carList}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => navigateToCarPage(item)}>
+              <TouchableOpacity onPress={() => navigateToMapPage(item)}>
                 <View style={styles.carContainer}>
                   <Text
                     style={styles.carItem}
@@ -227,22 +231,7 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
             onPress={() => setCarModalVisible(true)}
           />
 
-          <PaperButton
-            mode="contained"
-            onPress={handleJoinGroup}
-            style={styles.button}
-          >
-            Join Group
-          </PaperButton>
-          {auth.currentUser?.uid === group.creator_id && (
-            <PaperButton
-              mode="contained"
-              onPress={handleDeleteGroup}
-              style={styles.deleteButton}
-            >
-              Delete Group
-            </PaperButton>
-          )}
+          <Button title="Join Group" onPress={handleJoinGroup} />
           <Portal>
             <Modal
               visible={carModalVisible}
