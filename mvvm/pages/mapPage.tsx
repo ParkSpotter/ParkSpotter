@@ -1,24 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Pressable, StyleSheet } from 'react-native'
 import { Text, View } from 'react-native'
 import NavBar from '../components/NavBar'
 import { LeafletView, MapMarker } from 'react-native-leaflet-view'
-//import RNLocation from 'react-native-location';
-
-// RNLocation.configure({
-//   distanceFilter: 5.0
-// })
-
-// RNLocation.requestPermission({
-//   ios: "whenInUse",
-//   android: {
-//     detail: "coarse"
-//   }
-// }).then(granted => {
-//   if (granted) {
-
-//   }
-// })
+import * as Location from 'expo-location'
 
 const markers = [
   {
@@ -33,6 +18,29 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status === 'granted') {
+        getCurrentLocation()
+      } else {
+        console.log('Location permission denied')
+      }
+    }
+
+    const getCurrentLocation = async () => {
+      const location = await Location.getCurrentPositionAsync({})
+      setLocation({
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+      })
+    }
+
+    requestLocationPermission()
+  }, [])
+
   return (
     <View style={styles.container}>
       <NavBar route={route} navigation={navigation} title="Map" />
@@ -41,18 +49,22 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
         <Text>Go to Home</Text>
       </Pressable>
       <View style={styles.map}>
-        <LeafletView
-          mapMarkers={markers.map(marker => ({
-            position: marker.position,
-            icon: '📍',
-            size: [32, 32],
-            onPress: () => {},
-            title: marker.title,
-            description: marker.description,
-          }))}
-          mapCenterPosition={{ lat: 51.505, lng: -0.09 }}
-          zoom={13}
-        />
+        {location ? (
+          <LeafletView
+            mapMarkers={markers.map(marker => ({
+              position: marker.position,
+              icon: '📍',
+              size: [32, 32],
+              onPress: () => { },
+              title: marker.title,
+              description: marker.description,
+            }))}
+            mapCenterPosition={location}
+            zoom={13}
+          />
+        ) : (
+          <Text>Loading your location...</Text>
+        )}
       </View>
     </View>
   )
