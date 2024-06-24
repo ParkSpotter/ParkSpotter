@@ -3,4 +3,5 @@ export type GroupModel = {
   description: string
   members: string[]
   cars: string[]
+  creator_id: string | null
 }

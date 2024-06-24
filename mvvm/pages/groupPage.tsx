@@ -7,7 +7,7 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native'
-import { Text, Button } from 'react-native'
+import { Text } from 'react-native'
 import NavBar from '../components/NavBar'
 import { auth, db } from '../../firebaseConfig'
 import {
@@ -16,6 +16,7 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  deleteDoc,
   writeBatch,
 } from 'firebase/firestore'
 import {
@@ -159,6 +160,24 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
     }
   }
 
+  const handleDeleteGroup = async () => {
+    if (auth.currentUser?.uid !== group.creator_id) {
+      Alert.alert('You are not authorized to delete this group.')
+      return
+    }
+    setIsLoading(true)
+    try {
+      await deleteDoc(doc(db, 'groups', group.id!))
+      Alert.alert('Group deleted successfully!')
+      navigation.goBack()
+    } catch (error) {
+      console.error('Error deleting group: ', error)
+      Alert.alert('Error deleting group.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const navigateToCarPage = (car: any) => {
     navigation.navigate('CarPage', { car, group })
   }
@@ -208,7 +227,22 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
             onPress={() => setCarModalVisible(true)}
           />
 
-          <Button title="Join Group" onPress={handleJoinGroup} />
+          <PaperButton
+            mode="contained"
+            onPress={handleJoinGroup}
+            style={styles.button}
+          >
+            Join Group
+          </PaperButton>
+          {auth.currentUser?.uid === group.creator_id && (
+            <PaperButton
+              mode="contained"
+              onPress={handleDeleteGroup}
+              style={styles.deleteButton}
+            >
+              Delete Group
+            </PaperButton>
+          )}
           <Portal>
             <Modal
               visible={carModalVisible}
@@ -310,6 +344,14 @@ const styles = StyleSheet.create({
     right: 16,
     bottom: 16,
     backgroundColor: '#6200ea',
+  },
+  button: {
+    marginTop: 10,
+    backgroundColor: '#6200ea',
+  },
+  deleteButton: {
+    marginTop: 10,
+    backgroundColor: '#b00020',
   },
   modalContent: {
     width: width * 0.8,
