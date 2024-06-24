@@ -1,11 +1,19 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, Dimensions, Image, Alert } from 'react-native'
-import { Text, Button } from 'react-native-paper'
-import { Picker } from '@react-native-picker/picker'
-import NavBar from '../components/NavBar'
+import {
+  Text,
+  Button,
+  TextInput,
+  Modal,
+  Portal,
+  Provider,
+} from 'react-native-paper'
+import * as ImagePicker from 'expo-image-picker'
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { updateDoc, doc } from 'firebase/firestore'
 import { db } from '../../firebaseConfig'
 import MySpinner from '../components/Spinner'
+import NavBar from '../components/NavBar'
 
 const { width } = Dimensions.get('window')
 
@@ -14,108 +22,174 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
   route,
 }) => {
   const car = route.params.car
-
   const group = route.params.group
+  const [visible, setVisible] = useState(false)
+  const [carName, setCarName] = useState(car.type)
+  const [carNumber, setCarNumber] = useState(car.number)
   const [isLoading, setIsLoading] = useState(false)
-  const [startHour, setStartHour] = useState<number | null>(null)
-  const [endHour, setEndHour] = useState<number | null>(null)
-  const [reschedule, setReschedule] = useState(false)
+  const [image, setImage] = useState(car.photo || null)
+  const [isPhotoLoading, setIsPhotoLoading] = useState(false)
 
-  const handleConfirmSchedule = async () => {
-    if (startHour === null || endHour === null || startHour >= endHour) {
-      Alert.alert('Please select a valid start and end hour.')
+  const showModal = () => setVisible(true)
+  const hideModal = () => setVisible(false)
+
+  const handleImagePicked = async (
+    pickerResult: ImagePicker.ImagePickerResult
+  ) => {
+    if (pickerResult.canceled) {
       return
     }
+
+    if (pickerResult.assets && pickerResult.assets.length > 0) {
+      const pickedImage = pickerResult.assets[0]
+      console.log(pickedImage.uri)
+      const response = await fetch(pickedImage.uri)
+      const blob = await response.blob()
+      const filename = pickedImage.uri.substring(
+        pickedImage.uri.lastIndexOf('/') + 1
+      )
+      const storage = getStorage()
+      const storageRef = ref(storage, `Images/${filename}`)
+      await uploadBytes(storageRef, blob)
+
+      setIsPhotoLoading(true)
+      const downloadURL = await getDownloadURL(storageRef)
+      setIsPhotoLoading(false)
+      console.log(downloadURL)
+      setImage(downloadURL)
+    }
+  }
+
+  const pickImage = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission to access camera roll is required!')
+      return
+    }
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    })
+    await handleImagePicked(pickerResult)
+  }
+
+  const takePhoto = async () => {
+    setIsPhotoLoading(true)
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission to access camera is required!')
+      return
+    }
+    const pickerResult = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    })
+
+    await handleImagePicked(pickerResult)
+    setIsPhotoLoading(false)
+  }
+
+  const handleSave = async () => {
     setIsLoading(true)
     try {
       const groupDocRef = doc(db, 'groups', group.id!)
       const updatedCars = group.cars.map((c: any) => {
         if (c.number === car.number) {
-          return { ...c, scheduledHours: { start: startHour, end: endHour } }
+          return { ...c, type: carName, number: carNumber, photo: image }
         }
         return c
       })
       await updateDoc(groupDocRef, {
         cars: updatedCars,
       })
-      Alert.alert('Car scheduled successfully!')
-      navigation.goBack()
+      car.type = carName
+      car.number = carNumber
+      car.photo = image
+      hideModal()
+      Alert.alert('Car details updated successfully!')
     } catch (error) {
-      console.error('Error scheduling car: ', error)
-      Alert.alert('Error scheduling car.')
+      console.error('Error updating car details: ', error)
+      Alert.alert('Error updating car details.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const renderHourOptions = () => {
-    return Array.from({ length: 24 }, (_, i) => (
-      <Picker.Item key={i} label={`${i}:00`} value={i} />
-    ))
-  }
-
-  if (isLoading) return <MySpinner />
-
   return (
-    <View style={styles.container}>
-      <NavBar route={route} navigation={navigation} title="Car" />
-      <View style={styles.content}>
-        <Image
-          source={{ uri: car.photo || 'https://picsum.photos/200' }}
-          style={styles.carImage}
-        />
-        <Text style={styles.carName}>{car.type}</Text>
-        <Text style={styles.carNumber}>{car.number}</Text>
-
-        {car.scheduledHours && !reschedule ? (
-          <>
-            <Text style={styles.scheduleInfo}>
-              Car is scheduled from {car.scheduledHours.start}:00 to{' '}
-              {car.scheduledHours.end}:00
-            </Text>
+    <Provider>
+      <View style={styles.container}>
+        <NavBar route={route} navigation={navigation} title="Car" />
+        <View style={styles.content}>
+          <Image
+            source={{ uri: image || 'https://picsum.photos/200' }}
+            style={styles.carImage}
+          />
+          <Text style={styles.carName}>{car.type}</Text>
+          <Text style={styles.carNumber}>{car.number}</Text>
+          <Button
+            mode="contained"
+            icon="pencil"
+            onPress={showModal}
+            style={styles.editButton}
+          >
+            Edit
+          </Button>
+        </View>
+        <Portal>
+          <Modal
+            visible={visible}
+            onDismiss={hideModal}
+            contentContainerStyle={styles.modalContainer}
+          >
+            <TextInput
+              label="Car Name"
+              value={carName}
+              onChangeText={text => setCarName(text)}
+              style={styles.input}
+            />
+            <TextInput
+              label="Car Number"
+              value={carNumber}
+              onChangeText={text => setCarNumber(text)}
+              style={styles.input}
+            />
+            {isPhotoLoading ? (
+              <MySpinner />
+            ) : (
+              <Image
+                source={{ uri: image || 'https://picsum.photos/200' }}
+                style={styles.carImage}
+              />
+            )}
+            <Button
+              mode="outlined"
+              onPress={pickImage}
+              style={styles.uploadButton}
+            >
+              Select Photo from Gallery
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={takePhoto}
+              style={styles.uploadButton}
+            >
+              Take a Photo
+            </Button>
             <Button
               mode="contained"
-              onPress={() => setReschedule(true)}
-              style={styles.scheduleButton}
+              onPress={handleSave}
+              loading={isLoading}
+              style={styles.saveButton}
             >
-              Reschedule Car
+              Save
             </Button>
-          </>
-        ) : (
-          <>
-            <View style={styles.pickerContainer}>
-              <Text style={styles.pickerLabel}>Start Hour:</Text>
-              <Picker
-                mode="dropdown"
-                selectedValue={startHour}
-                onValueChange={itemValue => setStartHour(itemValue)}
-                style={styles.picker}
-              >
-                {renderHourOptions()}
-              </Picker>
-            </View>
-            <View style={styles.pickerContainer}>
-              <Text style={styles.pickerLabel}>End Hour:</Text>
-              <Picker
-                mode="dropdown"
-                selectedValue={endHour}
-                onValueChange={itemValue => setEndHour(itemValue)}
-                style={styles.picker}
-              >
-                {renderHourOptions()}
-              </Picker>
-            </View>
-            <Button
-              mode="contained"
-              onPress={handleConfirmSchedule}
-              style={styles.scheduleButton}
-            >
-              Schedule Car
-            </Button>
-          </>
-        )}
+          </Modal>
+        </Portal>
       </View>
-    </View>
+    </Provider>
   )
 }
 
@@ -154,33 +228,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'HelveticaNeue-Light',
   },
-  scheduleInfo: {
-    fontSize: 16,
-    marginBottom: 20,
-    color: '#333333',
-    textAlign: 'center',
-    fontFamily: 'HelveticaNeue',
-  },
-  pickerContainer: {
-    marginBottom: 20,
-    width: '80%',
-    alignItems: 'center',
-  },
-  pickerLabel: {
-    color: '#333333',
-    marginBottom: 5,
-    fontFamily: 'HelveticaNeue-Medium',
-  },
-  picker: {
-    width: '100%',
-    height: 44,
-    color: '#333333',
-  },
-  scheduleButton: {
+  editButton: {
     marginTop: 10,
-    width: '80%',
-    alignSelf: 'center',
-    backgroundColor: '#4CAF50',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    margin: 20,
+    borderRadius: 10,
+  },
+  input: {
+    marginBottom: 10,
+  },
+  uploadButton: {
+    marginBottom: 10,
+  },
+  saveButton: {
+    marginTop: 10,
   },
 })
 
