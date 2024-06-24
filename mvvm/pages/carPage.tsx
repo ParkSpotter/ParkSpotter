@@ -14,6 +14,7 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
   route,
 }) => {
   const car = route.params.car
+
   const group = route.params.group
   const [isLoading, setIsLoading] = useState(false)
   const [startHour, setStartHour] = useState<number | null>(null)
