@@ -101,6 +101,7 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
       const groupData = {
         name: newGroupName,
         members: [auth.currentUser.uid],
+        creator_id: auth.currentUser.uid,
       }
 
       try {
