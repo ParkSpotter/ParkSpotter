@@ -2,6 +2,7 @@ import React, { FC } from 'react'
 import { Alert, StyleSheet, TouchableOpacity } from 'react-native'
 import { Appbar } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const NavBar: FC<{ route: any; navigation: any; title: string }> = ({
   route,
@@ -17,7 +18,15 @@ const NavBar: FC<{ route: any; navigation: any; title: string }> = ({
       },
       {
         text: 'Yes',
-        onPress: () => navigation.navigate('Login'),
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem('email')
+            await AsyncStorage.removeItem('password')
+            navigation.navigate('Login')
+          } catch (error) {
+            console.error('Failed to clear user data from AsyncStorage', error)
+          }
+        },
       },
     ])
   }

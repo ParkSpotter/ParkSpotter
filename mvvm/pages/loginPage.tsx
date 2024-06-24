@@ -14,6 +14,7 @@ const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [checkingStorage, setCheckingStorage] = useState(true)
 
   useEffect(() => {
     const checkUserLoggedIn = async () => {
@@ -21,17 +22,21 @@ const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
         const savedEmail = await AsyncStorage.getItem('email')
         const savedPassword = await AsyncStorage.getItem('password')
         if (savedEmail && savedPassword) {
+          setEmail(savedEmail)
+          setPassword(savedPassword)
           await signInWithEmailAndPassword(auth, savedEmail, savedPassword)
           navigation.navigate('Home')
         }
       } catch (error) {
         console.error('Failed to login automatically', error)
         // Continue to show login screen
+      } finally {
+        setCheckingStorage(false)
       }
     }
 
     checkUserLoggedIn()
-  }, [])
+  }, [navigation])
 
   const saveUserData = async (email: string, password: string) => {
     try {
@@ -65,7 +70,7 @@ const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || checkingStorage) {
     return <MySpinner />
   }
 
