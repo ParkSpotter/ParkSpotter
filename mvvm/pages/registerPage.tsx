@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { StyleSheet } from 'react-native'
-import { Text, View, Image, Alert } from 'react-native'
+import { StyleSheet, Alert } from 'react-native'
+import { Text, View, Image } from 'react-native'
 import { TextInput, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import * as ImagePicker from 'expo-image-picker'
@@ -9,6 +9,7 @@ import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
 import { auth, db } from '../../firebaseConfig'
 import { doc, setDoc } from 'firebase/firestore'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const defaultPhotoUri = 'https://www.w3schools.com/howto/img_avatar.png'
 
@@ -23,60 +24,93 @@ const RegisterView: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleImagePicked = async (
     pickerResult: ImagePicker.ImagePickerResult
   ) => {
-    if (pickerResult.canceled) {
-      return
-    }
+    try {
+      if (pickerResult.canceled) {
+        return
+      }
 
-    if (pickerResult.assets && pickerResult.assets.length > 0) {
-      const pickedImage = pickerResult.assets[0]
-      console.log(pickedImage.uri)
-      const response = await fetch(pickedImage.uri)
-      const blob = await response.blob()
-      const filename = pickedImage.uri.substring(
-        pickedImage.uri.lastIndexOf('/') + 1
+      if (pickerResult.assets && pickerResult.assets.length > 0) {
+        const pickedImage = pickerResult.assets[0]
+        const response = await fetch(pickedImage.uri)
+        const blob = await response.blob()
+        const filename = pickedImage.uri.substring(
+          pickedImage.uri.lastIndexOf('/') + 1
+        )
+        const storage = getStorage()
+        const storageRef = ref(storage, `Images/${filename}`)
+        await uploadBytes(storageRef, blob)
+
+        setIsPhotoLoading(true)
+        const downloadURL = await getDownloadURL(storageRef)
+        setIsPhotoLoading(false)
+        setImage(downloadURL)
+      }
+    } catch (error) {
+      console.error('Image upload failed:', error)
+      Alert.alert(
+        'Image Upload Failed',
+        'There was an error while uploading the image. Please try again.'
       )
-      const storage = getStorage()
-      const storageRef = ref(storage, `Images/${filename}`)
-      await uploadBytes(storageRef, blob)
-
-      setIsPhotoLoading(true)
-      const downloadURL = await getDownloadURL(storageRef)
       setIsPhotoLoading(false)
-      console.log(downloadURL)
-      setImage(downloadURL)
     }
   }
 
   const pickImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission to access camera roll is required!')
-      return
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (permissionResult.granted === false) {
+        Alert.alert('Permission to access camera roll is required!')
+        return
+      }
+      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      })
+      await handleImagePicked(pickerResult)
+    } catch (error) {
+      console.error('Error picking image:', error)
+      Alert.alert(
+        'Image Picker Error',
+        'An error occurred while picking the image. Please try again.'
+      )
     }
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    })
-    await handleImagePicked(pickerResult)
   }
 
   const takeSelfie = async () => {
-    setIsPhotoLoading(true)
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission to access camera is required!')
-      return
-    }
-    const pickerResult = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    })
+    try {
+      setIsPhotoLoading(true)
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
+      if (permissionResult.granted === false) {
+        Alert.alert('Permission to access camera is required!')
+        return
+      }
+      const pickerResult = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      })
 
-    await handleImagePicked(pickerResult)
-    setIsPhotoLoading(false)
+      await handleImagePicked(pickerResult)
+      setIsPhotoLoading(false)
+    } catch (error) {
+      console.error('Error taking selfie:', error)
+      Alert.alert(
+        'Camera Error',
+        'An error occurred while taking the selfie. Please try again.'
+      )
+      setIsPhotoLoading(false)
+    }
+  }
+
+  const saveUserData = async (email: string, password: string) => {
+    try {
+      await AsyncStorage.setItem('email', email)
+      await AsyncStorage.setItem('password', password)
+    } catch (error) {
+      console.error('Failed to save user data to AsyncStorage', error)
+    }
   }
 
   const onSubmit = async () => {
@@ -95,12 +129,12 @@ const RegisterView: React.FC<{ navigation: any }> = ({ navigation }) => {
         password,
         groups: [],
         cars: [],
-        image: image || null, // Save the image URL in the user document
+        image: image || null,
       })
-      setIsLoading(false)
-      console.log('test')
-      navigation.navigate('Login')
+      await saveUserData(email, password)
+      navigation.navigate('Home')
     } catch (error: any) {
+      console.error('Registration Failed', error)
       Alert.alert('Registration Failed', error.message)
       setIsLoading(false)
     } finally {
@@ -149,12 +183,7 @@ const RegisterView: React.FC<{ navigation: any }> = ({ navigation }) => {
             icon={() => <Icon name="email" size={20} color="#555" />}
           />
         }
-        theme={{
-          colors: {
-            primary: '#6200ea',
-            background: '#fff',
-          },
-        }}
+        theme={{ colors: { primary: '#6200ea', background: '#fff' } }}
       />
       <TextInput
         label="Username"
@@ -166,12 +195,7 @@ const RegisterView: React.FC<{ navigation: any }> = ({ navigation }) => {
             icon={() => <Icon name="account" size={20} color="#555" />}
           />
         }
-        theme={{
-          colors: {
-            primary: '#6200ea',
-            background: '#fff',
-          },
-        }}
+        theme={{ colors: { primary: '#6200ea', background: '#fff' } }}
       />
       <TextInput
         label="Password"
@@ -184,12 +208,7 @@ const RegisterView: React.FC<{ navigation: any }> = ({ navigation }) => {
             icon={() => <Icon name="lock" size={20} color="#555" />}
           />
         }
-        theme={{
-          colors: {
-            primary: '#6200ea',
-            background: '#fff',
-          },
-        }}
+        theme={{ colors: { primary: '#6200ea', background: '#fff' } }}
       />
       <Button mode="contained" onPress={onSubmit} style={styles.button}>
         Register
