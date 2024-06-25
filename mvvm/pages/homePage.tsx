@@ -222,9 +222,12 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#ffffff',  // Changed to white for a cleaner look
   },
-  cardSubtitle: {},
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#757575',  // Slightly darker gray for better readability
+  },
   fabContainer: {
     height: 40,
     justifyContent: 'center',
@@ -238,6 +241,10 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     marginHorizontal: 5,
+    borderRadius: 20,  // More rounded buttons
+    paddingVertical: 8,  // Increased padding for a better touch experience
+    paddingHorizontal: 16,
+    fontSize: 16,  // Larger text size
   },
   scrollViewContent: {
     padding: 20,
@@ -254,10 +261,13 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
+    borderRadius: 15,  // More rounded corners for the card
+    elevation: 4,  // Added shadow for better depth
+    padding: 10,  // Added padding inside the card
   },
   fab: {
     marginTop: 20,
-    backgroundColor: '#6200ea',
+    backgroundColor: '#03a9f4',  // Changed to a lighter blue for better contrast
   },
   modalContainer: {
     flex: 1,
@@ -277,6 +287,7 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     marginTop: 10,
+    borderRadius: 20,  // Rounded buttons inside the modal
   },
 })
 
