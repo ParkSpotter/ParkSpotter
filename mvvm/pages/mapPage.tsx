@@ -64,6 +64,9 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
     }
   }, [location, locationLoading]);
 
+  // Filter car list to exclude unavailable cars
+  const filteredCarList = carList.filter((car: Car) => car.available && car.isOccupiedBy === null);
+
   // Handle press on a marker to show car details
   const handleMarkerPress = (car: Car) => {
     setSelectedCar(car);
@@ -87,7 +90,8 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
       </Pressable>
       <View style={styles.map}>
         <LeafletView
-          mapMarkers={carList.map((car: Car, index: number) => ({
+          mapMarkers={filteredCarList.map((car: Car, index: number) => ({
+            key: index.toString(), // Provide a unique key for each marker
             position: {
               lat: car.location.latitude,
               lng: car.location.longitude,
@@ -116,7 +120,7 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
             <Text>Number: {selectedCar?.number}</Text>
             {selectedCar?.photo && (
               <Image
-                source={{ uri: selectedCar.photo }} // Assuming photo is a URL
+                source={{ uri: selectedCar.photo }}
                 style={styles.carPhoto}
                 resizeMode="cover"
               />
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: 'white',
