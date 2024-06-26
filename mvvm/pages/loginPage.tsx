@@ -32,6 +32,8 @@ const LoginView: React.FC<{ navigation: any }> = ({ navigation }) => {
         // Continue to show login screen
       } finally {
         setCheckingStorage(false)
+        setEmail('')
+        setPassword('')
       }
     }
 
