@@ -14,7 +14,7 @@ import { updateDoc, doc } from 'firebase/firestore'
 import { auth, db } from '../../firebaseConfig'
 import MySpinner from '../components/Spinner'
 import NavBar from '../components/NavBar'
-
+import * as Location from 'expo-location'
 const { width } = Dimensions.get('window')
 
 const CarPage: React.FC<{ navigation: any; route: any }> = ({
@@ -128,8 +128,13 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
       setCarStatus(!carStatus)
       setIsOccupied(!isOccupied)
       setOccupiedBy(occupiedBy ? null : currentUser)
+      let newLocation = car.location
+      if (!isOccupied) {
+        newLocation = (await Location.getCurrentPositionAsync({})).coords
+      }
       const updatedCar = {
         ...car,
+        location: newLocation,
         available: isOccupied,
         occupiedBy: occupiedBy ? null : currentUser,
       }
