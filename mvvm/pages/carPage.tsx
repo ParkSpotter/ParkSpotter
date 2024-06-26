@@ -21,7 +21,8 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
-  const { car, group } = route.params
+  const { car, group, carList, setCarList, carStatus, setCarStatus } =
+    route.params
   const [visible, setVisible] = useState(false)
   const [carName, setCarName] = useState(car.type)
   const [carNumber, setCarNumber] = useState(car.number)
@@ -124,25 +125,24 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
     try {
       const currentUser = auth.currentUser?.uid
       const groupDocRef = doc(db, 'groups', group.id!)
-      const updatedCars = group.cars.map((c: any) => {
-        if (c.number === car.number) {
-          return {
-            ...c,
-            available: isOccupied,
-            occupiedBy: isOccupied ? null : currentUser,
-          }
-        }
-        return c
-      })
-      await updateDoc(groupDocRef, {
-        cars: updatedCars,
-      })
-      car.available = isOccupied
-      car.occupiedBy = isOccupied ? null : currentUser
+      setCarStatus(!carStatus)
       setIsOccupied(!isOccupied)
-      setOccupiedBy(isOccupied ? null : currentUser)
+      setOccupiedBy(occupiedBy ? null : currentUser)
+      const updatedCar = {
+        ...car,
+        available: isOccupied,
+        occupiedBy: occupiedBy ? null : currentUser,
+      }
+      const updatedCarList = carList.map((c: any) =>
+        c.number === car.number ? updatedCar : c
+      )
+      setCarList(updatedCarList)
+      await updateDoc(groupDocRef, {
+        cars: updatedCarList,
+      })
+
       Alert.alert(
-        `Car status updated to ${isOccupied ? 'Available' : 'Occupied'}!`
+        `Car status updated to ${isOccupied ? 'Available' : 'Taken'}!`
       )
     } catch (error) {
       console.error('Error updating car status: ', error)
@@ -175,9 +175,17 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
             mode="contained"
             icon="car"
             onPress={handleToggleOccupied}
-            style={styles.occupiedButton}
+            style={
+              isOccupied
+                ? styles.occupiedButton
+                : {
+                    ...styles.occupiedButton,
+                    backgroundColor: '#4caf50',
+                  }
+            }
+            disabled={isOccupied && occupiedBy !== auth.currentUser?.uid}
           >
-            {isOccupied ? 'Occupied' : 'Set as Occupied'}
+            {isOccupied ? 'Taken' : 'Available'}
           </Button>
         </View>
         <Portal>

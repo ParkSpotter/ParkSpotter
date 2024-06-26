@@ -58,7 +58,7 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
   const [carModalVisible, setCarModalVisible] = useState(false)
   const [carNumber, setCarNumber] = useState('')
   const [carType, setCarType] = useState('')
-  const [carStatus, setCarStatus] = useState(false)
+  const [carStatus, setCarStatus] = useState(true)
   const [isOccupiedBy, setIsOccupiedBy] = useState(null)
 
   const isMember = group.members.includes(auth.currentUser?.uid)
@@ -205,8 +205,6 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
         await updateDoc(groupDocRef, { cars: arrayUnion(newCar) })
         Alert.alert('Car added successfully!')
         setCarModalVisible(false)
-        setCarNumber('')
-        setCarType('')
         setCarList(prevCars => [...prevCars, newCar])
       } catch (error) {
         console.error('Error adding car: ', error)
@@ -261,6 +259,8 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
       carStatus,
       isOccupiedBy,
       setIsOccupiedBy,
+      setCarList,
+      carList,
     })
   }
 
@@ -309,8 +309,12 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
                   <Card.Content>
                     <Title>{item.type}</Title>
                     <Text>Number: {item.number}</Text>
-                    <Text>
-                      Status: {item.available ? 'Available' : 'Occupied'}
+                    <Text
+                      style={
+                        item.available ? { color: 'green' } : { color: 'red' }
+                      }
+                    >
+                      Status: {item.available ? 'Available' : 'Taken'}
                     </Text>
                   </Card.Content>
                   <Card.Actions>
