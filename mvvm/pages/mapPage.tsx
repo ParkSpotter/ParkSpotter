@@ -11,8 +11,8 @@ interface Car {
   type: string;
   available: boolean;
   isOccupiedBy: string | null;
-  photo: string | null; // Assuming photo is a URL or base64 encoded image
-  name: string; // Car name
+  photo: string | null;
+  name: string;
 }
 
 const MapPage: React.FC<{ navigation: any; route: any }> = ({
@@ -64,15 +64,12 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
     }
   }, [location, locationLoading]);
 
-  // Filter car list to exclude unavailable cars
   const filteredCarList = carList.filter((car: Car) => car.available && car.isOccupiedBy === null);
 
-  // Handle press on a marker to show car details
   const handleMarkerPress = (car: Car) => {
     setSelectedCar(car);
   };
 
-  // Clear selected car details
   const clearSelectedCar = () => {
     setSelectedCar(null);
   };
@@ -91,7 +88,7 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
       <View style={styles.map}>
         <LeafletView
           mapMarkers={filteredCarList.map((car: Car, index: number) => ({
-            key: index.toString(), // Provide a unique key for each marker
+            key: index.toString(),
             position: {
               lat: car.location.latitude,
               lng: car.location.longitude,
