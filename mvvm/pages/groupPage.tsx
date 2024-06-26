@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 import {
   StyleSheet,
   FlatList,
@@ -7,11 +7,11 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-} from 'react-native';
-import { Text } from 'react-native';
-import NavBar from '../components/NavBar';
-import { auth, db } from '../../firebaseConfig';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+} from 'react-native'
+import { Text } from 'react-native'
+import NavBar from '../components/NavBar'
+import { auth, db } from '../../firebaseConfig'
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import {
   doc,
   getDoc,
@@ -20,7 +20,7 @@ import {
   arrayRemove,
   deleteDoc,
   writeBatch,
-} from 'firebase/firestore';
+} from 'firebase/firestore'
 import {
   FAB,
   Modal,
@@ -31,213 +31,227 @@ import {
   Button as PaperButton,
   IconButton,
   Card,
-} from 'react-native-paper';
-import MySpinner from '../components/Spinner';
-import { createClient } from 'pexels';
+} from 'react-native-paper'
+import MySpinner from '../components/Spinner'
+import { createClient } from 'pexels'
 
-const client = createClient('YOUR_PEXELS_API_KEY');
-const { width, height } = Dimensions.get('window');
-
+const client = createClient(
+  'G1sn44GvaCpalI8NhnAp0pEo7ILem4cLJadQzyfCDw9nU9FjSnxLmCfP'
+)
+const { width, height } = Dimensions.get('window')
+type CoordinatesType = {
+  latitude: number
+  longitude: number
+}
+const location: CoordinatesType = {
+  latitude: 31.96102,
+  longitude: 34.80162,
+}
 const GroupPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
-  const group: any = route.params.group;
-  const [memberDetails, setMemberDetails] = useState<any[]>([]);
-  const [carList, setCarList] = useState<any[]>(group.cars || []);
-  const [isLoading, setIsLoading] = useState(false);
-  const [carModalVisible, setCarModalVisible] = useState(false);
-  const [carNumber, setCarNumber] = useState('');
-  const [carType, setCarType] = useState('');
-  const [carStatus, setCarStatus] = useState(false);
-  const [isOccupiedBy, setIsOccupiedBy] = useState(null);
+  const group: any = route.params.group
+  const [memberDetails, setMemberDetails] = useState<any[]>([])
+  const [carList, setCarList] = useState<any[]>(group.cars || [])
+  const [isLoading, setIsLoading] = useState(false)
+  const [carModalVisible, setCarModalVisible] = useState(false)
+  const [carNumber, setCarNumber] = useState('')
+  const [carType, setCarType] = useState('')
+  const [carStatus, setCarStatus] = useState(false)
+  const [isOccupiedBy, setIsOccupiedBy] = useState(null)
+
+  const isMember = group.members.includes(auth.currentUser?.uid)
 
   useEffect(() => {
     const fetchMemberDetails = async () => {
       const memberPromises = group.members.map(async (memberId: string) => {
-        const memberDoc = await getDoc(doc(db, 'users', memberId));
+        const memberDoc = await getDoc(doc(db, 'users', memberId))
         if (memberDoc.exists()) {
-          const memberData = memberDoc.data();
+          const memberData = memberDoc.data()
           return {
             id: memberId,
             username: memberData?.username || 'Unknown User',
-          };
+          }
         }
-        return { id: memberId, username: 'Unknown User' };
-      });
-      const memberData = await Promise.all(memberPromises);
-      setMemberDetails(memberData);
-    };
-    fetchMemberDetails();
-  }, [group.members]);
+        return { id: memberId, username: 'Unknown User' }
+      })
+      const memberData = await Promise.all(memberPromises)
+      setMemberDetails(memberData)
+    }
+    fetchMemberDetails()
+  }, [group.members])
 
   useEffect(() => {
     const fetchCars = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const groupDoc = await getDoc(doc(db, 'groups', group.id!));
+        const groupDoc = await getDoc(doc(db, 'groups', group.id!))
         if (groupDoc.exists()) {
-          setCarList(groupDoc.data()?.cars || []);
+          setCarList(groupDoc.data()?.cars || [])
         }
       } catch (error) {
-        console.error('Error fetching cars: ', error);
+        console.error('Error fetching cars: ', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    fetchCars();
-  }, [group.id]);
+    }
+    fetchCars()
+  }, [group.id])
 
   const handleJoinGroup = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     if (auth.currentUser) {
-      const groupDocRef = doc(db, 'groups', group.id!);
-      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      const groupDocRef = doc(db, 'groups', group.id!)
+      const userDocRef = doc(db, 'users', auth.currentUser.uid)
 
       try {
         if (group.members.includes(auth.currentUser.uid)) {
-          Alert.alert('You are already a member of this group.');
-          return;
+          Alert.alert('You are already a member of this group.')
+          return
         }
 
-        const batch = writeBatch(db);
-        batch.update(groupDocRef, { members: arrayUnion(auth.currentUser.uid) });
-        batch.update(userDocRef, { groups: arrayUnion(group.id) });
-        await batch.commit();
+        const batch = writeBatch(db)
+        batch.update(groupDocRef, { members: arrayUnion(auth.currentUser.uid) })
+        batch.update(userDocRef, { groups: arrayUnion(group.id) })
+        await batch.commit()
 
-        Alert.alert('Joined the group successfully!');
+        Alert.alert('Joined the group successfully!')
 
-        const memberDoc = await getDoc(userDocRef);
+        const memberDoc = await getDoc(userDocRef)
         if (memberDoc.exists()) {
           const newMemberData = {
             id: auth.currentUser.uid,
             username: memberDoc.data()?.username || 'Unknown User',
-          };
-          setMemberDetails([...memberDetails, newMemberData]);
-          group.members.push(auth.currentUser.uid);
+          }
+          setMemberDetails([...memberDetails, newMemberData])
+          group.members.push(auth.currentUser.uid)
         }
       } catch (error) {
-        console.error('Error joining group: ', error);
-        Alert.alert('Error joining the group.');
+        console.error('Error joining group: ', error)
+        Alert.alert('Error joining the group.')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
-  };
+  }
 
   const handleLeaveGroup = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     if (auth.currentUser) {
-      const groupDocRef = doc(db, 'groups', group.id!);
-      const userDocRef = doc(db, 'users', auth.currentUser.uid);
+      const groupDocRef = doc(db, 'groups', group.id!)
+      const userDocRef = doc(db, 'users', auth.currentUser.uid)
 
       try {
         if (!group.members.includes(auth.currentUser.uid)) {
-          Alert.alert('You are not a member of this group.');
-          return;
+          Alert.alert('You are not a member of this group.')
+          return
         }
 
-        const batch = writeBatch(db);
+        const batch = writeBatch(db)
         batch.update(groupDocRef, {
           members: arrayRemove(auth.currentUser.uid),
-        });
-        batch.update(userDocRef, { groups: arrayRemove(group.id) });
-        await batch.commit();
+        })
+        batch.update(userDocRef, { groups: arrayRemove(group.id) })
+        await batch.commit()
 
-        Alert.alert('Left the group successfully!');
+        Alert.alert('Left the group successfully!')
 
         setMemberDetails(
           memberDetails.filter(member => member.id !== auth.currentUser.uid)
-        );
+        )
         group.members = group.members.filter(
           (id: string) => id !== auth.currentUser.uid
-        );
+        )
       } catch (error) {
-        console.error('Error leaving group: ', error);
-        Alert.alert('Error leaving the group.');
+        console.error('Error leaving group: ', error)
+        Alert.alert('Error leaving the group.')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
-  };
+  }
 
   const getCarPhoto = async (query: string) => {
     try {
-      const photos = await client.photos.search({ query, per_page: 1 });
+      const photos = await client.photos.search({ query, per_page: 1 })
       if (photos && photos.photos && photos.photos.length > 0) {
-        const photoUrl = photos.photos[0].src.original;
-        return photoUrl;
+        const photoUrl = photos.photos[0].src.original
+        return photoUrl
       }
     } catch (error) {
-      console.error('Error fetching car photo: ', error);
+      console.log('test')
+      console.error('Error fetching car photo: ', error)
     }
-    return null;
-  };
+    return null
+  }
 
   const handleAddCar = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     if (carNumber.trim() && carType.trim()) {
+      const query = 'profile picture of a ' + carType + ' car'
       try {
-        const carPhotoUrl = await getCarPhoto(carType);
+        const carPhotoUrl = await getCarPhoto(query)
 
-        const groupDocRef = doc(db, 'groups', group.id!);
+        const groupDocRef = doc(db, 'groups', group.id!)
         const newCar = {
           number: carNumber,
           type: carType,
           photo: carPhotoUrl,
           available: carStatus,
           isOccupiedBy,
-        };
-        await updateDoc(groupDocRef, { cars: arrayUnion(newCar) });
-        Alert.alert('Car added successfully!');
-        setCarModalVisible(false);
-        setCarNumber('');
-        setCarType('');
-        setCarList(prevCars => [...prevCars, newCar]);
+          location,
+        }
+        await updateDoc(groupDocRef, { cars: arrayUnion(newCar) })
+        Alert.alert('Car added successfully!')
+        setCarModalVisible(false)
+        setCarNumber('')
+        setCarType('')
+        setCarList(prevCars => [...prevCars, newCar])
       } catch (error) {
-        console.error('Error adding car: ', error);
-        Alert.alert('Error adding car.');
+        console.error('Error adding car: ', error)
+        Alert.alert('Error adding car.')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     } else {
-      setIsLoading(false);
-      Alert.alert('Please fill out all fields.');
+      setIsLoading(false)
+      Alert.alert('Please fill out all fields.')
     }
-  };
+  }
 
   const handleDeleteCar = async (car: any) => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const groupDocRef = doc(db, 'groups', group.id!);
-      await updateDoc(groupDocRef, { cars: arrayRemove(car) });
-      Alert.alert('Car deleted successfully!');
-      setCarList(prevCars => prevCars.filter(c => c.number !== car.number));
+      const groupDocRef = doc(db, 'groups', group.id!)
+      await updateDoc(groupDocRef, { cars: arrayRemove(car) })
+      Alert.alert('Car deleted successfully!')
+      setCarList(prevCars => prevCars.filter(c => c.number !== car.number))
     } catch (error) {
-      console.error('Error deleting car: ', error);
-      Alert.alert('Error deleting car.');
+      console.error('Error deleting car: ', error)
+      Alert.alert('Error deleting car.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleDeleteGroup = async () => {
     if (auth.currentUser?.uid !== group.creator_id) {
-      Alert.alert('You are not authorized to delete this group.');
-      return;
+      Alert.alert('You are not authorized to delete this group.')
+      return
     }
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      await deleteDoc(doc(db, 'groups', group.id!));
-      Alert.alert('Group deleted successfully!');
-      navigation.goBack();
+      await deleteDoc(doc(db, 'groups', group.id!))
+      Alert.alert('Group deleted successfully!')
+      navigation.goBack()
     } catch (error) {
-      console.error('Error deleting group: ', error);
-      Alert.alert('Error deleting group.');
+      console.error('Error deleting group: ', error)
+      Alert.alert('Error deleting group.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const navigateToCarPage = (car: any) => {
     navigation.navigate('CarPage', {
@@ -247,16 +261,14 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
       carStatus,
       isOccupiedBy,
       setIsOccupiedBy,
-    });
-  };
+    })
+  }
 
   const navigateToMapPage = () => {
-    navigation.navigate('MapPage', { group });
-  };
+    navigation.navigate('MapPage', { carList })
+  }
 
-  const isMember = group.members.includes(auth.currentUser?.uid);
-
-  if (isLoading) return <MySpinner />;
+  if (isLoading) return <MySpinner />
   return (
     <Provider>
       <View style={styles.container}>
@@ -279,17 +291,34 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
               data={carList}
               keyExtractor={item => item.number}
               renderItem={({ item }) => (
-                <Card style={styles.carCard} onPress={() => navigateToCarPage(item)}>
+                <Card
+                  style={
+                    isMember
+                      ? styles.carCard
+                      : { ...styles.carCard, opacity: 0.5 }
+                  }
+                  onPress={() => navigateToCarPage(item)}
+                  disabled={!isMember}
+                >
                   {item.photo && (
-                    <Card.Cover source={{ uri: item.photo }} style={styles.carImage} />
+                    <Card.Cover
+                      source={{ uri: item.photo }}
+                      style={styles.carImage}
+                    />
                   )}
                   <Card.Content>
                     <Title>{item.type}</Title>
                     <Text>Number: {item.number}</Text>
-                    <Text>Status: {item.available ? 'Available' : 'Occupied'}</Text>
+                    <Text>
+                      Status: {item.available ? 'Available' : 'Occupied'}
+                    </Text>
                   </Card.Content>
                   <Card.Actions>
-                    <PaperButton onPress={() => handleDeleteCar(item)}>Delete</PaperButton>
+                    {isMember && (
+                      <PaperButton onPress={() => handleDeleteCar(item)}>
+                        Delete
+                      </PaperButton>
+                    )}
                   </Card.Actions>
                 </Card>
               )}
@@ -301,23 +330,35 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
         </ScrollView>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.mapButton} onPress={navigateToMapPage}>
+          <TouchableOpacity
+            style={styles.mapButton}
+            onPress={navigateToMapPage}
+          >
             <MaterialCommunityIcons name="map" color="#fff" size={20} />
             <Text style={styles.buttonText}>View Map</Text>
           </TouchableOpacity>
           {isMember ? (
-            <TouchableOpacity style={styles.leaveButton} onPress={handleLeaveGroup}>
+            <TouchableOpacity
+              style={styles.leaveButton}
+              onPress={handleLeaveGroup}
+            >
               <MaterialCommunityIcons name="logout" color="#fff" size={20} />
               <Text style={styles.buttonText}>Leave Group</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.joinButton} onPress={handleJoinGroup}>
+            <TouchableOpacity
+              style={styles.joinButton}
+              onPress={handleJoinGroup}
+            >
               <MaterialCommunityIcons name="login" color="#fff" size={20} />
               <Text style={styles.buttonText}>Join Group</Text>
             </TouchableOpacity>
           )}
           {auth.currentUser?.uid === group.creator_id && (
-            <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteGroup}>
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={handleDeleteGroup}
+            >
               <MaterialCommunityIcons name="delete" color="#fff" size={20} />
               <Text style={styles.buttonText}>Delete Group</Text>
             </TouchableOpacity>
@@ -362,8 +403,8 @@ const GroupPage: React.FC<{ navigation: any; route: any }> = ({
         </Portal>
       </View>
     </Provider>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -441,7 +482,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     position: 'absolute',
     right: 20,
-    top:120,
+    top: 120,
     backgroundColor: '#2196f3',
   },
   modalContainer: {
@@ -462,6 +503,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-});
+})
 
-export default GroupPage;
+export default GroupPage
