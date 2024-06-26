@@ -1,35 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Modal, Image } from 'react-native';
-import { Text, View } from 'react-native';
+import { Pressable, StyleSheet, Modal, Image, Text, View } from 'react-native';
 import NavBar from '../components/NavBar';
-import { LeafletView } from 'react-native-leaflet-view';
+import { LatLng, LeafletView } from 'react-native-leaflet-view';
 import * as Location from 'expo-location';
-import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
-import { db } from '../../firebaseConfig';
 import MySpinner from '../components/Spinner';
 
-interface Coordinates {
-  latitude: number;
-  longitude: number;
-}
-
 interface Car {
-  location: Coordinates;
+  location: LatLng;
   number: string;
   type: string;
   available: boolean;
   isOccupiedBy: string | null;
   photo: string | null; // Assuming photo is a URL or base64 encoded image
+  name: string; // Car name
 }
 
 const MapPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
-  const [location, setLocation] = useState<Coordinates | null>(null);
+  const [location, setLocation] = useState<LatLng | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [locationLoading, setLocationLoading] = useState<boolean>(true);
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+  const { carList } = route.params;
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -40,18 +34,19 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
         getCurrentLocation();
       } else {
         console.log('Location permission denied');
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
     const getCurrentLocation = async () => {
+      setLocationLoading(true);
       try {
         console.log('Getting current location...');
         const location = await Location.getCurrentPositionAsync({});
-        console.log('Current location obtained:', location);
+        console.log('Location:', location.coords);
         setLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
+          lat: location.coords.latitude,
+          lng: location.coords.longitude,
         });
       } catch (error) {
         console.error('Error getting current location:', error);
@@ -63,6 +58,12 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
     requestLocationPermission();
   }, []);
 
+  useEffect(() => {
+    if (location && !locationLoading) {
+      setLoading(false);
+    }
+  }, [location, locationLoading]);
+
   // Handle press on a marker to show car details
   const handleMarkerPress = (car: Car) => {
     setSelectedCar(car);
@@ -73,11 +74,9 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
     setSelectedCar(null);
   };
 
-  if (loading || locationLoading || !location) {
+  if (loading) {
     return <MySpinner />;
   }
-
-  const { carList } = route.params;
 
   return (
     <View style={styles.container}>
@@ -89,15 +88,18 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
       <View style={styles.map}>
         <LeafletView
           mapMarkers={carList.map((car: Car, index: number) => ({
-            position: { lat: car.location.latitude, lng: car.location.longitude },
+            position: {
+              lat: car.location.latitude,
+              lng: car.location.longitude,
+            },
             icon: '🚗',
             size: [32, 32],
             onPress: () => handleMarkerPress(car),
-            title: `Car ${index + 1}`,
-            description: `Type: ${car.type}, Number: ${car.number}`,
+            title: `${car.type} - ${car.number}`,
+            description: 'Tap to view details',
           }))}
-          mapCenterPosition={location}
           zoom={13}
+          mapCenterPosition={location}
         />
       </View>
       {/* Modal to display selected car details */}
@@ -109,7 +111,7 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text>Car Details</Text>
+            <Text style={styles.modalTitle}>Car Details</Text>
             <Text>Type: {selectedCar?.type}</Text>
             <Text>Number: {selectedCar?.number}</Text>
             {selectedCar?.photo && (
@@ -119,8 +121,8 @@ const MapPage: React.FC<{ navigation: any; route: any }> = ({
                 resizeMode="cover"
               />
             )}
-            <Pressable onPress={clearSelectedCar}>
-              <Text>Close</Text>
+            <Pressable onPress={clearSelectedCar} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Close</Text>
             </Pressable>
           </View>
         </View>
@@ -153,11 +155,26 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
   },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
   carPhoto: {
     width: 200,
     height: 150,
     marginTop: 10,
     borderRadius: 10,
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 
