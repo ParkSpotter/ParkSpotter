@@ -1,26 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { AppRegistry, LogBox } from 'react-native'
-import { Provider as PaperProvider } from 'react-native-paper'
-import AppNav from './mvvm/navigation/AppNav'
-import { setupDatabase } from './DatabaseService'
-LogBox.ignoreAllLogs()
+import React, { useState, useEffect } from 'react';
+import { AppRegistry, LogBox } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
+import AppNav from './mvvm/navigation/AppNav';
+
+LogBox.ignoreAllLogs();
 const App = () => {
-  //   useEffect(() => {
-  //     const initializeDatabase = async () => {
-  //       try {
-  //         await setupDatabase()
-  //         console.log('Database setup complete.')
-  //       } catch (error) {
-  //         console.error('Failed to set up the database:', error)
-  //       }
-  //     }
-  //     initializeDatabase()
-  //   }, [])
   return (
     <PaperProvider>
       <AppNav />
     </PaperProvider>
-  )
-}
+  );
+};
 
-export default App
+export default App;

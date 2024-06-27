@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-} from 'react-native'
+} from 'react-native';
 import {
   Button,
   Card,
@@ -16,9 +16,10 @@ import {
   FAB,
   Modal,
   TextInput,
-} from 'react-native-paper'
-import NavBar from '../components/NavBar'
-import { auth, db } from '../../firebaseConfig'
+} from 'react-native-paper';
+import { createGroupB } from '../Models/groupModel';
+import NavBar from '../components/NavBar';
+import { auth, db } from '../../firebaseConfig';
 import {
   addDoc,
   collection,
@@ -27,74 +28,77 @@ import {
   updateDoc,
   arrayUnion,
   onSnapshot,
-} from 'firebase/firestore'
-import MySpinner from '../components/Spinner'
-import { Image, Text } from 'react-native-elements'
+} from 'firebase/firestore';
+import MySpinner from '../components/Spinner';
+import { Image, Text } from 'react-native-elements';
+import { useSQLiteContext } from 'expo-sqlite';
 
-const { width, height } = Dimensions.get('window')
+const { width, height } = Dimensions.get('window');
 
 const HomePage: FC<{ route: any; navigation: any }> = ({
   route,
   navigation,
 }) => {
-  const [userName, setUserName] = useState<string | null>(null)
-  const [userImage, setUserImage] = useState<string | null>(null)
-  const [groups, setGroups] = useState<any[]>([])
-  const [myGroups, setMyGroups] = useState<any[]>([])
-  const [modalVisible, setModalVisible] = useState(false)
-  const [newGroupName, setNewGroupName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [showMyGroups, setShowMyGroups] = useState(true)
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userImage, setUserImage] = useState<string | null>(null);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [myGroups, setMyGroups] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showMyGroups, setShowMyGroups] = useState(true);
+
+  const dbSQL = useSQLiteContext();
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (auth.currentUser) {
-        const userDocRef = doc(db, 'users', auth.currentUser.uid)
-        const userDoc = await getDoc(userDocRef)
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-          const userData = userDoc.data()
-          setUserName(userData?.email || null)
-          setUserImage(userData?.image || null)
+          const userData = userDoc.data();
+          setUserName(userData?.email || null);
+          setUserImage(userData?.image || null);
         }
       }
-    }
+    };
 
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     const fetchGroups = () => {
-      setIsLoading(true)
-      const groupsCollection = collection(db, 'groups')
+      setIsLoading(true);
+      const groupsCollection = collection(db, 'groups');
       const unsubscribe = onSnapshot(
         groupsCollection,
-        snapshot => {
-          const groupsList = snapshot.docs.map(doc => ({
+        (snapshot) => {
+          const groupsList = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-          }))
-          setGroups(groupsList)
+          }));
+          setGroups(groupsList);
 
           if (auth.currentUser) {
-            const userGroups = groupsList.filter(group =>
+            const userGroups = groupsList.filter((group) =>
               group.members.includes(auth.currentUser.uid)
-            )
-            setMyGroups(userGroups)
+            );
+            setMyGroups(userGroups);
           }
-          
-          setIsLoading(false)
+
+          setIsLoading(false);
         },
-        error => {
-          console.error('Error fetching groups: ', error)
-          setIsLoading(false)
+        (error) => {
+          console.error('Error fetching groups: ', error);
+          setIsLoading(false);
         }
-      )
+      );
 
-      return () => unsubscribe()
-    }
+      return () => unsubscribe();
+    };
 
-    fetchGroups()
-  }, [])
+    fetchGroups();
+  }, []);
 
   const createGroup = async () => {
     if (auth.currentUser && newGroupName.trim()) {
@@ -102,56 +106,56 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
         name: newGroupName,
         members: [auth.currentUser.uid],
         creator_id: auth.currentUser.uid,
-      }
+      };
 
       try {
-        setIsLoading(true)
-        const docRef = await addDoc(collection(db, 'groups'), groupData)
-        console.log('Document written with ID: ', docRef.id)
+        setIsLoading(true);
+        const docRef = await addDoc(collection(db, 'groups'), groupData);
+        console.log('Document written with ID: ', docRef.id);
 
-        const userDocRef = doc(db, 'users', auth.currentUser.uid)
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
         await updateDoc(userDocRef, {
           groups: arrayUnion(docRef.id),
-        })
+        });
 
-        setGroups([...groups, { ...groupData, id: docRef.id }])
-        setMyGroups([...myGroups, { ...groupData, id: docRef.id }])
-        setModalVisible(false)
-        setNewGroupName('')
+        setGroups([...groups, { ...groupData, id: docRef.id }]);
+        setMyGroups([...myGroups, { ...groupData, id: docRef.id }]);
+        setModalVisible(false);
+        setNewGroupName('');
       } catch (e) {
-        console.error('Error adding document: ', e)
+        console.error('Error adding document: ', e);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const navigateToGroup = (group: any) => {
-    navigation.navigate('GroupPage', { group })
-  }
+    navigation.navigate('GroupPage', { group });
+  };
 
   return (
     <Provider>
-      <NavBar route={route} navigation={navigation} title="Home" />
+      <NavBar route={route} navigation={navigation} title='Home' />
       <SafeAreaView style={styles.container}>
         <View style={styles.fabContainer}>
           <FAB
             style={styles.fab}
-            size="small"
-            icon="plus"
+            size='small'
+            icon='plus'
             onPress={() => setModalVisible(true)}
           />
         </View>
         <View style={styles.buttonContainer}>
           <Button
-            mode={showMyGroups ? "contained" : "outlined"}
+            mode={showMyGroups ? 'contained' : 'outlined'}
             onPress={() => setShowMyGroups(true)}
             style={styles.filterButton}
           >
             My Groups
           </Button>
           <Button
-            mode={!showMyGroups ? "contained" : "outlined"}
+            mode={!showMyGroups ? 'contained' : 'outlined'}
             onPress={() => setShowMyGroups(false)}
             style={styles.filterButton}
           >
@@ -191,21 +195,21 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
             >
               <Title>Create New Group</Title>
               <TextInput
-                label="Group Name"
+                label='Group Name'
                 value={newGroupName}
                 onChangeText={setNewGroupName}
-                mode="outlined"
+                mode='outlined'
                 style={styles.input}
               />
               <Button
-                mode="contained"
+                mode='contained'
                 onPress={createGroup}
                 style={styles.modalButton}
               >
                 Create
               </Button>
               <Button
-                mode="text"
+                mode='text'
                 onPress={() => setModalVisible(false)}
                 style={styles.modalButton}
               >
@@ -216,17 +220,17 @@ const HomePage: FC<{ route: any; navigation: any }> = ({
         </ScrollView>
       </SafeAreaView>
     </Provider>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',  // Changed to white for a cleaner look
+    backgroundColor: '#ffffff', // Changed to white for a cleaner look
   },
   cardSubtitle: {
     fontSize: 14,
-    color: '#757575',  // Slightly darker gray for better readability
+    color: '#757575', // Slightly darker gray for better readability
   },
   fabContainer: {
     height: 40,
@@ -241,10 +245,10 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     marginHorizontal: 5,
-    borderRadius: 20,  // More rounded buttons
-    paddingVertical: 8,  // Increased padding for a better touch experience
+    borderRadius: 20, // More rounded buttons
+    paddingVertical: 8, // Increased padding for a better touch experience
     paddingHorizontal: 16,
-    fontSize: 16,  // Larger text size
+    fontSize: 16, // Larger text size
   },
   scrollViewContent: {
     padding: 20,
@@ -261,13 +265,13 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    borderRadius: 15,  // More rounded corners for the card
-    elevation: 4,  // Added shadow for better depth
-    padding: 10,  // Added padding inside the card
+    borderRadius: 15, // More rounded corners for the card
+    elevation: 4, // Added shadow for better depth
+    padding: 10, // Added padding inside the card
   },
   fab: {
     marginTop: 20,
-    backgroundColor: '#03a9f4',  // Changed to a lighter blue for better contrast
+    backgroundColor: '#03a9f4', // Changed to a lighter blue for better contrast
   },
   modalContainer: {
     flex: 1,
@@ -287,8 +291,8 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     marginTop: 10,
-    borderRadius: 20,  // Rounded buttons inside the modal
+    borderRadius: 20, // Rounded buttons inside the modal
   },
-})
+});
 
-export default HomePage
+export default HomePage;
