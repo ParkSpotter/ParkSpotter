@@ -1,12 +1,20 @@
+// DatabaseService.ts
 import SQLite, { SQLiteDatabase } from 'expo-sqlite';
 
-console.log('Opening database...');
-const db: SQLiteDatabase = await SQLite.openDatabaseAsync('databaseName');
-console.log('Database opened.');
+let db: SQLiteDatabase | null = null;
 
-console.log('Executing database setup commands...');
+const openDatabaseAsync = async () => {
+  console.log('Opening database...');
+  const database = await SQLite.openDatabaseAsync('databaseName');
+  console.log('Database opened.');
+  return database;
+};
 
 export const setupDatabase = async () => {
+  if (!db) {
+    db = await openDatabaseAsync();
+  }
+  console.log('Executing database setup commands...');
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS users (
@@ -26,7 +34,13 @@ export const setupDatabase = async () => {
         creator_id TEXT,
         FOREIGN KEY (creator_id) REFERENCES users(id)
     );
-`);
+  `);
   console.log('Database setup commands executed.');
 };
-export default db;
+
+export default async () => {
+  if (!db) {
+    db = await openDatabaseAsync();
+  }
+  return db;
+};
