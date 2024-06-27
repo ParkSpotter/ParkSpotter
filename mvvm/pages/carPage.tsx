@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { View, StyleSheet, Dimensions, Image, Alert } from 'react-native'
+import React, { useState } from 'react';
+import { View, StyleSheet, Dimensions, Image, Alert } from 'react-native';
 import {
   Text,
   Button,
@@ -7,160 +7,160 @@ import {
   Modal,
   Portal,
   Provider,
-} from 'react-native-paper'
-import * as ImagePicker from 'expo-image-picker'
-import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage'
-import { updateDoc, doc } from 'firebase/firestore'
-import { auth, db } from '../../firebaseConfig'
-import MySpinner from '../components/Spinner'
-import NavBar from '../components/NavBar'
-import * as Location from 'expo-location'
-const { width } = Dimensions.get('window')
+} from 'react-native-paper';
+import * as ImagePicker from 'expo-image-picker';
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
+import { updateDoc, doc } from 'firebase/firestore';
+import { auth, db } from '../../firebaseConfig';
+import MySpinner from '../components/Spinner';
+import NavBar from '../components/NavBar';
+import * as Location from 'expo-location';
+const { width } = Dimensions.get('window');
 
 const CarPage: React.FC<{ navigation: any; route: any }> = ({
   navigation,
   route,
 }) => {
   const { car, group, carList, setCarList, carStatus, setCarStatus } =
-    route.params
-  const [visible, setVisible] = useState(false)
-  const [carName, setCarName] = useState(car.type)
-  const [carNumber, setCarNumber] = useState(car.number)
-  const [isLoading, setIsLoading] = useState(false)
-  const [image, setImage] = useState(car.photo || null)
-  const [isPhotoLoading, setIsPhotoLoading] = useState(false)
-  const [isOccupied, setIsOccupied] = useState(!car.available)
-  const [occupiedBy, setOccupiedBy] = useState(car.occupiedBy || null)
+    route.params;
+  const [visible, setVisible] = useState(false);
+  const [carName, setCarName] = useState(car.type);
+  const [carNumber, setCarNumber] = useState(car.number);
+  const [isLoading, setIsLoading] = useState(false);
+  const [image, setImage] = useState(car.photo || null);
+  const [isPhotoLoading, setIsPhotoLoading] = useState(false);
+  const [isOccupied, setIsOccupied] = useState(!car.available);
+  const [occupiedBy, setOccupiedBy] = useState(car.occupiedBy || null);
 
-  const showModal = () => setVisible(true)
-  const hideModal = () => setVisible(false)
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
 
   const handleImagePicked = async (
     pickerResult: ImagePicker.ImagePickerResult
   ) => {
     if (pickerResult.canceled) {
-      return
+      return;
     }
 
     if (pickerResult.assets && pickerResult.assets.length > 0) {
-      const pickedImage = pickerResult.assets[0]
-      console.log(pickedImage.uri)
-      const response = await fetch(pickedImage.uri)
-      const blob = await response.blob()
+      const pickedImage = pickerResult.assets[0];
+      console.log(pickedImage.uri);
+      const response = await fetch(pickedImage.uri);
+      const blob = await response.blob();
       const filename = pickedImage.uri.substring(
         pickedImage.uri.lastIndexOf('/') + 1
-      )
-      const storage = getStorage()
-      const storageRef = ref(storage, `Images/${filename}`)
-      await uploadBytes(storageRef, blob)
+      );
+      const storage = getStorage();
+      const storageRef = ref(storage, `Images/${filename}`);
+      await uploadBytes(storageRef, blob);
 
-      setIsPhotoLoading(true)
-      const downloadURL = await getDownloadURL(storageRef)
-      setIsPhotoLoading(false)
-      console.log(downloadURL)
-      setImage(downloadURL)
+      setIsPhotoLoading(true);
+      const downloadURL = await getDownloadURL(storageRef);
+      setIsPhotoLoading(false);
+      console.log(downloadURL);
+      setImage(downloadURL);
     }
-  }
+  };
 
   const pickImage = async () => {
     const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync()
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
-      Alert.alert('Permission to access camera roll is required!')
-      return
+      Alert.alert('Permission to access camera roll is required!');
+      return;
     }
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
-    })
-    await handleImagePicked(pickerResult)
-  }
+    });
+    await handleImagePicked(pickerResult);
+  };
 
   const takePhoto = async () => {
-    setIsPhotoLoading(true)
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
+    setIsPhotoLoading(true);
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
-      Alert.alert('Permission to access camera is required!')
-      return
+      Alert.alert('Permission to access camera is required!');
+      return;
     }
     const pickerResult = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
-    })
+    });
 
-    await handleImagePicked(pickerResult)
-    setIsPhotoLoading(false)
-  }
+    await handleImagePicked(pickerResult);
+    setIsPhotoLoading(false);
+  };
 
   const handleSave = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const groupDocRef = doc(db, 'groups', group.id!)
+      const groupDocRef = doc(db, 'groups', group.id!);
       const updatedCars = group.cars.map((c: any) => {
         if (c.number === car.number) {
-          return { ...c, type: carName, number: carNumber, photo: image }
+          return { ...c, type: carName, number: carNumber, photo: image };
         }
-        return c
-      })
+        return c;
+      });
       await updateDoc(groupDocRef, {
         cars: updatedCars,
-      })
-      car.type = carName
-      car.number = carNumber
-      car.photo = image
-      hideModal()
-      Alert.alert('Car details updated successfully!')
+      });
+      car.type = carName;
+      car.number = carNumber;
+      car.photo = image;
+      hideModal();
+      Alert.alert('Car details updated successfully!');
     } catch (error) {
-      console.error('Error updating car details: ', error)
-      Alert.alert('Error updating car details.')
+      console.error('Error updating car details: ', error);
+      Alert.alert('Error updating car details.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleToggleOccupied = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const currentUser = auth.currentUser?.uid
-      const groupDocRef = doc(db, 'groups', group.id!)
-      setCarStatus(!carStatus)
-      setIsOccupied(!isOccupied)
-      setOccupiedBy(occupiedBy ? null : currentUser)
-      let newLocation = car.location
+      const currentUser = auth.currentUser?.uid;
+      const groupDocRef = doc(db, 'groups', group.id!);
+      setCarStatus(!carStatus);
+      setIsOccupied(!isOccupied);
+      setOccupiedBy(occupiedBy ? null : currentUser);
+      let newLocation = car.location;
       if (!isOccupied) {
-        newLocation = (await Location.getCurrentPositionAsync({})).coords
+        newLocation = (await Location.getCurrentPositionAsync({})).coords;
       }
       const updatedCar = {
         ...car,
         location: newLocation,
         available: isOccupied,
         occupiedBy: occupiedBy ? null : currentUser,
-      }
+      };
       const updatedCarList = carList.map((c: any) =>
         c.number === car.number ? updatedCar : c
-      )
-      setCarList(updatedCarList)
+      );
+      setCarList(updatedCarList);
       await updateDoc(groupDocRef, {
         cars: updatedCarList,
-      })
+      });
 
       Alert.alert(
         `Car status updated to ${isOccupied ? 'Available' : 'Taken'}!`
-      )
+      );
     } catch (error) {
-      console.error('Error updating car status: ', error)
-      Alert.alert('Error updating car status.')
+      console.error('Error updating car status: ', error);
+      Alert.alert('Error updating car status.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-  if (isLoading) return <MySpinner />
+  };
+  if (isLoading) return <MySpinner />;
   return (
     <Provider>
       <View style={styles.container}>
-        <NavBar route={route} navigation={navigation} title="Car" />
+        <NavBar route={route} navigation={navigation} title='Car' />
         <View style={styles.content}>
           <Image
             source={{ uri: image || 'https://picsum.photos/200' }}
@@ -169,16 +169,16 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
           <Text style={styles.carName}>{car.type}</Text>
           <Text style={styles.carNumber}>{car.number}</Text>
           <Button
-            mode="contained"
-            icon="pencil"
+            mode='contained'
+            icon='pencil'
             onPress={showModal}
             style={styles.editButton}
           >
             Edit
           </Button>
           <Button
-            mode="contained"
-            icon="car"
+            mode='contained'
+            icon='car'
             onPress={handleToggleOccupied}
             style={
               isOccupied
@@ -200,15 +200,15 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
             contentContainerStyle={styles.modalContainer}
           >
             <TextInput
-              label="Car Name"
+              label='Car Name'
               value={carName}
-              onChangeText={text => setCarName(text)}
+              onChangeText={(text) => setCarName(text)}
               style={styles.input}
             />
             <TextInput
-              label="Car Number"
+              label='Car Number'
               value={carNumber}
-              onChangeText={text => setCarNumber(text)}
+              onChangeText={(text) => setCarNumber(text)}
               style={styles.input}
             />
             {isPhotoLoading ? (
@@ -220,21 +220,21 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
               />
             )}
             <Button
-              mode="outlined"
+              mode='outlined'
               onPress={pickImage}
               style={styles.uploadButton}
             >
               Select Photo from Gallery
             </Button>
             <Button
-              mode="outlined"
+              mode='outlined'
               onPress={takePhoto}
               style={styles.uploadButton}
             >
               Take a Photo
             </Button>
             <Button
-              mode="contained"
+              mode='contained'
               onPress={handleSave}
               loading={isLoading}
               style={styles.saveButton}
@@ -245,8 +245,8 @@ const CarPage: React.FC<{ navigation: any; route: any }> = ({
         </Portal>
       </View>
     </Provider>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -305,6 +305,6 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: 10,
   },
-})
+});
 
-export default CarPage
+export default CarPage;

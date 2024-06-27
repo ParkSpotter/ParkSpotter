@@ -1,46 +1,49 @@
-// DatabaseService.ts
-import SQLite, { SQLiteDatabase } from 'expo-sqlite';
+import { SQLiteDatabase } from 'expo-sqlite';
+import * as FileSystem from 'expo-file-system';
+import { User } from './mvvm/Models/userModel';
 
-let db: SQLiteDatabase | null = null;
+export async function migrateDbIfNeeded(db: SQLiteDatabase) {
+  console.log(FileSystem.documentDirectory);
 
-const openDatabaseAsync = async () => {
-  console.log('Opening database...');
-  const database = await SQLite.openDatabaseAsync('databaseName');
-  console.log('Database opened.');
-  return database;
-};
+  const DATABASE_VERSION = 1;
+  let result = await db.getFirstAsync<{ user_version: number }>(
+    'PRAGMA user_version'
+  );
+  let currentDbVersion = result?.user_version ?? 0;
 
-export const setupDatabase = async () => {
-  if (!db) {
-    db = await openDatabaseAsync();
+  if (currentDbVersion >= DATABASE_VERSION) {
+    console.log('Database is up to date');
+    return;
   }
-  console.log('Executing database setup commands...');
-  await db.execAsync(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY NOT NULL,
+
+  if (currentDbVersion === 0) {
+    const result = await db.execAsync(`
+      PRAGMA journal_mode = 'wal';
+
+      CREATE TABLE users (id TEXT PRIMARY KEY NOT NULL,
         email TEXT NOT NULL,
         cars TEXT, -- Assuming JSON array
         groups TEXT, -- Assuming JSON array
-        image TEXT,
+        image TEXT OR NULL,
         password TEXT NOT NULL,
         username TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS groups (
+      );
+
+      CREATE TABLE groups (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         cars TEXT, -- Assuming JSON array
         members TEXT, -- Assuming JSON array
         creator_id TEXT,
         FOREIGN KEY (creator_id) REFERENCES users(id)
-    );
-  `);
-  console.log('Database setup commands executed.');
-};
+      );
+`);
+    console.log(result);
 
-export default async () => {
-  if (!db) {
-    db = await openDatabaseAsync();
+    currentDbVersion = 1;
   }
-  return db;
-};
+  // if (currentDbVersion === 1) {
+  //   Add more migrations
+  // }
+  await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+}
